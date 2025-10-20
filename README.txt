@@ -1,3 +1,13 @@
+#Team 3 Capstone Project 
+This repository was developed by Team 3 as part of the Penn State AB Capstone Project (Fall 2025).  
+It explores the relationship between RSA encryption and Shor’s quantum factoring algorithm, comparing classical and quantum approaches to factorization.
+
+#Team Members 
+## Chris Joo, Sam Axler, Matthew Danese, John Teetz, William Lawther, Rahul Reji, Martin Shestani
+
+#Professor
+## Joe Oakes
+
 ##abcapstonefa25Team3/
 ├─ .vscode/
 │  ├─ launch.json
@@ -36,3 +46,4 @@ source venv/bin/activate
 
 # 2) Install dependencies
 pip install -r requirements.txt
+
