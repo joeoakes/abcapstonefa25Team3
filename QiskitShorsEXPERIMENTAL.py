@@ -43,22 +43,6 @@ def primes_upto(n):
             sieve[p * p:n:p] = [False] * len(range(p * p, n, p))
     return [i for i, v in enumerate(sieve) if v]
 
-def hamming_correct(meas: str):
-    bits = [int(b) for b in meas[::-1]]
-    corrected = bits[:]
-    for s in range(0, len(bits), 7):
-        seg = bits[s:s + 7]
-        if len(seg) < 7:
-            break
-        p1 = (seg[0] ^ seg[2] ^ seg[4] ^ seg[6])
-        p2 = (seg[1] ^ seg[2] ^ seg[5] ^ seg[6])
-        p3 = (seg[3] ^ seg[4] ^ seg[5] ^ seg[6])
-        syn = (p3 << 2) | (p2 << 1) | p1
-        if syn and syn <= len(seg):
-            seg[syn - 1] ^= 1
-        corrected[s:s + 7] = seg
-    return ''.join(str(b) for b in corrected[::-1])
-
 _CU_CACHE = {}
 
 def c_mult_mod_N(a, N, n_work):
@@ -104,7 +88,7 @@ def order_finding_qpe(a, N, n_count, work_prep="one"):
         for q in work:
             qc.h(q)
 
-    # Put count in |+>^⊗
+    # Put count in superposition
     qc.h(count)
 
     # Controlled-U^(2^k) with count[k] as the control (k=0 is LSB)
@@ -168,12 +152,8 @@ def shor_factor_anyN(N: int,
         top = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:3]
         top_raw = top[0][0]
 
-        # IMPORTANT: reverse bitstring (Qiskit prints MSB→LSB)
+        # IMPORTANT: reverse bitstring (Qiskit prints MSB -> LSB)
         top_raw_little = top_raw[::-1]
-
-        top_corr_little = hamming_correct(top_raw_little[::-1])[::-1]  # reuse function safely
-        if verbose and top_corr_little != top_raw_little:
-            print(f"  [Hamming correction] {top_raw_little[::-1]} → {top_corr_little[::-1]}")
 
         # Weighted average (also reverse for each key)
         avg = sum(int(k[::-1], 2) * v for k, v in top) / sum(v for _, v in top)
