@@ -131,6 +131,7 @@ def shor_factor_anyN(N: int,
         print("[Backend] CPU fallback.")
 
     primes = [p for p in primes_upto(N) if p % 2 and gcd(p, N) == 1 and p > 2][:max_trials]
+    # If none are available (almost never happens, just for redundancy sake), choose odd coprime values
     if not primes:
         primes = [a for a in range(3, N, 2) if gcd(a, N) == 1][:max_trials]
 
@@ -142,22 +143,25 @@ def shor_factor_anyN(N: int,
         if verbose:
             print(f"\n[Trial {i}/{len(primes)}] a={a}")
 
+        # Build and flatten the circuit
         qc = order_finding_qpe(a, N, n_count, work_prep)
         tqc = flatten_circuit(qc)
 
+        # Run the circuit and collect a histogram of measurement results
         result = backend.run(tqc, shots=shots).result()
         counts = result.get_counts()
 
-        # Top-3 outcomes
+        # Identify the most frequent outcomes to reduce the effect of sampling noise
         top = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:3]
         top_raw = top[0][0]
 
-        # IMPORTANT: reverse bitstring (Qiskit prints MSB -> LSB)
+        # Qiskit prints bitstrings with the most significant bit on the left. Kind of annoying. We have to reverse the bitstring before converting to an integer.
         top_raw_little = top_raw[::-1]
 
-        # Weighted average (also reverse for each key)
+        # Convert the average index into a phase in the range [0, 1)
         avg = sum(int(k[::-1], 2) * v for k, v in top) / sum(v for _, v in top)
         phase = avg / (1 << n_count)
+        # Use a continued fraction with a denominator limited by twice N to estimate s over r
         frac = continued_fraction_phase(round(phase, 8), d=2 * N)
         r = frac.denominator
 
@@ -165,6 +169,7 @@ def shor_factor_anyN(N: int,
             print(f"  result(msb to lsb)={top_raw}  result(lsb to msb)={top_raw_little}")
             print(f"  phase = {phase:.6f}  = {frac}  to r={r}")
 
+        # Try to turn the candidate order into nontrivial factors of N
         fac = try_factor_from_order(a, r, N)
         if fac:
             p, q = fac
@@ -178,4 +183,6 @@ def shor_factor_anyN(N: int,
 
 
 if __name__ == "__main__":
+    # You can change N, the number of counting qubits, the number of shots, and the initial work register preparation here.
+    # For larger N, consider reducing the number of counting qubits to keep runtime reasonable. Right now, it's automatic, but i'll add a seperate setting later.
     shor_factor_anyN(N=35, n_count=10, shots=8192, work_prep="one", verbose=True)
