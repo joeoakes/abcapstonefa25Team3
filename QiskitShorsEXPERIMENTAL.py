@@ -17,12 +17,14 @@ except ModuleNotFoundError:
 
 
 def n_qubits_for(N: int):
+    # Return the number of work qubits needed to represent integers from 0 to N-1.
     return max(1, int(np.ceil(np.log2(N))))
 
 def continued_fraction_phase(p, d):
     return Fraction(p).limit_denominator(d)
 
 def try_factor_from_order(a, r, N):
+    # Factor Ordering helper for Shor's Algorithm testing. (Validating if the R value is even nontrivial)
     if r % 2:
         return None
     x = pow(a, r // 2, N)
@@ -34,6 +36,7 @@ def try_factor_from_order(a, r, N):
     return None
 
 def primes_upto(n):
+    # Prime Number helper
     if n < 3:
         return []
     sieve = [True] * n
@@ -46,7 +49,7 @@ def primes_upto(n):
 _CU_CACHE = {}
 
 def c_mult_mod_N(a, N, n_work):
-    """Return 1-controlled multiply-by-a (mod N) gate."""
+    # Build a one-controlled unitary that multiplies the work register by 'a modulo N'.
     key = (a, N, n_work)
     if key in _CU_CACHE:
         return _CU_CACHE[key]
@@ -58,54 +61,63 @@ def c_mult_mod_N(a, N, n_work):
         U[tgt, y] = 1.0
 
     Ugate = UnitaryGate(U, label=f"{a}_mod_{N}")
-    CU = Ugate.control(1)       # <-- real controlled version
+    CU = Ugate.control(1) # turn the unitary into a controlled unitary with one control qubit
     _CU_CACHE[key] = CU
     return CU
 
 
 def inverse_qft_no_swaps(qc: QuantumCircuit, qubits):
-    """Inverse QFT on 'qubits' with NO swaps, matching count[0] as the LSB."""
-    # Apply in-place, little-endian: qubits[0] is LSB (k=0 control)
+    # Apply the inverse Quantum Fourier Transform to the given list of qubits.
+    # This version does not include final swap gates. It is written for the convention where the first counting qubit represents the least significant bit. 
     n = len(qubits)
-    for j in range(n - 1, -1, -1):  # from MSB down to LSB
-        # controlled phase rotations
+    # Walk from the most significant position down to the least significant position
+    for j in range(n - 1, -1, -1):
+        # Apply controlled phase rotations with decreasing angle
         for m in range(j - 1, -1, -1):
             angle = -pi / (1 << (j - m))
             qc.cp(angle, qubits[m], qubits[j])
+        # Apply a Hadamard to convert phase into amplitude on this qubit
         qc.h(qubits[j])
 
 def order_finding_qpe(a, N, n_count, work_prep="one"):
+    # Quantum Phase Estimation function!!!!!!!!
     n_work = n_qubits_for(N)
     count = QuantumRegister(n_count, "count")
     work  = QuantumRegister(n_work, "work")
     cl    = ClassicalRegister(n_count, "c")
     qc = QuantumCircuit(count, work, cl)
 
-    # Init work
+    # Prepare the work register initial state
+    # If "one", set the integer value one by flipping the least significant work qubit.
+    # Otherwise, create a uniform superposition across all work states.
+    
+    # It's more efficient to start from one because that's ultimately the condition we are looking to satisfy for our 'R' value finder.
     if work_prep == "one":
-        qc.x(work[0])  # |1> assuming work[0] is LSB
+        qc.x(work[0])  # prepare the integer value one
     else:
         for q in work:
             qc.h(q)
 
-    # Put count in superposition
+    # Put the counting register into superposition
     qc.h(count)
 
-    # Controlled-U^(2^k) with count[k] as the control (k=0 is LSB)
+    # Apply controlled modular multiplications by powers of a
+    # The k-th counting qubit controls multiplication by a^(2^k) modulo N
     for k in range(n_count):
         a_k = pow(a, 1 << k, N)
         if a_k == 1:
             continue
         qc.append(c_mult_mod_N(a_k, N, n_work), [count[k]] + list(work))
 
-    # Inverse QFT in little-endian (no swaps), consistent with loop above
+    # Decode the phase with the inverse Quantum Fourier Transform
     inverse_qft_no_swaps(qc, list(count))
 
-    # Measure count
+    # Measure the counting register to obtain a binary approximation of the phase
     qc.measure(count, cl)
     return qc
 
 def flatten_circuit(qc: QuantumCircuit) -> QuantumCircuit:
+    # Recursively flatten the circuit. There are much better ways to do it, but I had to deal with headache errors from stuff like composite gates. (PLEASE FIX THIS LATER SAM)
     while any(getattr(inst.operation, "definition", None) is not None for inst in qc.data):
         qc = qc.decompose()
     return qc.decompose()
@@ -119,9 +131,11 @@ def shor_factor_anyN(N: int,
     if N < 4:
         print("[Info] N too small.")
         return None
+    # Auto select counting qubits if none are selected.
     if n_count is None:
         n_count = max(4, int(np.ceil(2 * log2(N))))
 
+    # Build the simulator. Try to use the graphics processing unit. Fall back to the central processor. Graphics unit works in Colab and the QuantumX.
     backend = AerSimulator(method="statevector")
     try:
         backend.set_options(device="GPU", precision="single", fusion_enable=True)
@@ -129,7 +143,7 @@ def shor_factor_anyN(N: int,
             print("[Backend] GPU statevector + fusion (single precision).")
     except Exception:
         print("[Backend] CPU fallback.")
-
+    # Choose some base values that are prime, odd, and coprime with N
     primes = [p for p in primes_upto(N) if p % 2 and gcd(p, N) == 1 and p > 2][:max_trials]
     # If none are available (almost never happens, just for redundancy sake), choose odd coprime values
     if not primes:
