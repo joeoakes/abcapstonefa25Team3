@@ -160,8 +160,8 @@ def flatten_circuit(qc: QuantumCircuit) -> QuantumCircuit:
 def shor_factor_anyN(N: int,
                      n_count=None,
                      shots=4096,
-                     max_trials=3,
                      work_prep="one",
+                     a_trials: int = 3,
                      verbose=True):
     total_start = time.perf_counter()
 
@@ -172,7 +172,7 @@ def shor_factor_anyN(N: int,
     if n_count is None:
         n_count = max(4, int(np.ceil(2 * log2(N))))
 
-    # Build the simulator. Try to use the graphics processing unit. Fall back to the central processor. Graphics unit works in Colab and the QuantumX.
+    # Build the simulator. Try to use the graphics processing unit. Fall back to the central processor.
     backend = AerSimulator(method="statevector")
     try:
         backend.set_options(device="GPU", precision="single", fusion_enable=True)
@@ -180,53 +180,48 @@ def shor_factor_anyN(N: int,
             print("[Backend] GPU statevector + fusion (single precision).")
     except Exception:
         print("[Backend] CPU fallback.")
-    # Choose some base values that are prime, odd, and coprime with N
-    primes = [p for p in primes_upto(N) if p % 2 and gcd(p, N) == 1 and p > 2][:max_trials]
-    # If none are available (almost never happens, just for redundancy sake), choose odd coprime values
+
+    # Choose candidate a values
+    primes = [p for p in primes_upto(N) if p % 2 and gcd(p, N) == 1 and p > 2][:a_trials]
     if not primes:
-        primes = [a for a in range(3, N, 2) if gcd(a, N) == 1][:max_trials]
+        primes = [a for a in range(3, N, 2) if gcd(a, N) == 1][:a_trials]
 
     if verbose:
         print(f"[Setup] N={N}, n_count={n_count}, work_qubits={n_qubits_for(N)}")
-        print(f"[Setup] Trying a values (prime, odd, coprime, <=3): {primes}")
+        print(f"[Setup] Trying {len(primes)} a values (prime, odd, coprime): {primes}")
 
+    # Try each candidate a value
     for i, a in enumerate(primes, 1):
         if verbose:
-            print(f"\n{CYAN}[Trial {i}/{len(primes)}] a={a}{RESET}")
+            print(f"\n\n\n{CYAN}[Trial {i}/{len(primes)}] a={a}{RESET}")
         trial_start = time.perf_counter()
 
         # Build and flatten the circuit
         qc = order_finding_qpe(a, N, n_count, work_prep)
         tqc = flatten_circuit(qc)
 
-        # Run the circuit and collect a histogram of measurement results
+        # Run simulation
         sim_start = time.perf_counter()
         result = backend.run(tqc, shots=shots).result()
         counts = result.get_counts()
         sim_end = time.perf_counter()
         print(f"{YELLOW}[Simulation Complete]{RESET} time={sim_end - sim_start:.3f}s")
 
-        # Identify the most frequent outcomes to reduce the effect of sampling noise
+        # Analyze result
         analyze_start = time.perf_counter()
         top = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:3]
         top_raw = top[0][0]
-
-        # Qiskit prints bitstrings with the most significant bit on the left. Kind of annoying. We have to reverse the bitstring before converting to an integer.
         top_raw_little = top_raw[::-1]
-
-        # Convert the average index into a phase in the range [0, 1)
         avg = sum(int(k[::-1], 2) * v for k, v in top) / sum(v for _, v in top)
         phase = avg / (1 << n_count)
-        # Use a continued fraction with a denominator limited by twice N to estimate s over r
         frac = continued_fraction_phase(round(phase, 8), d=2 * N)
         r = frac.denominator
         analyze_end = time.perf_counter()
 
-        print(f"{BLUE}[Result]{RESET} result(msb to lsb)={top_raw}  result(lsb to msb)={top_raw_little}")
-        print(f"{BLUE}[Phase]{RESET} phase={phase:.6f}  = {frac}  to r={r}")
+        print(f"{BLUE}[Result]{RESET} result(msb→lsb)={top_raw}  result(lsb→msb)={top_raw_little}")
+        print(f"{BLUE}[Phase]{RESET} phase={phase:.6f} = {frac} → r={r}")
         print(f"{YELLOW}[Analysis Time]{RESET} {analyze_end - analyze_start:.3f}s")
 
-        # Try to turn the candidate order into nontrivial factors of N
         fac = try_factor_from_order(a, r, N)
         trial_end = time.perf_counter()
         print(f"{CYAN}[Trial Time]{RESET} {trial_end - trial_start:.3f}s")
@@ -238,7 +233,7 @@ def shor_factor_anyN(N: int,
             print(f"{YELLOW}[TOTAL TIME]{RESET} {total_end - total_start:.3f}s\n")
             return (p, q)
         if verbose:
-            print(f"{BLUE}[Result] {RESET}No nontrivial factors for this a.")
+            print(f"{BLUE}[Result]{RESET} No nontrivial factors for this a.")
 
     total_end = time.perf_counter()
     print(f"{RED}[FAIL]{RESET} No factors found with current settings. Total run time={total_end - total_start:.3f}s")
@@ -248,4 +243,4 @@ def shor_factor_anyN(N: int,
 if __name__ == "__main__":
     # You can change N, the number of counting qubits, the number of shots, and the initial work register preparation here.
     # For larger N, consider reducing the number of counting qubits to keep runtime reasonable. Right now, it's automatic, but i'll add a seperate setting later.
-    shor_factor_anyN(N=21, n_count=10, shots=8192, work_prep="one", verbose=True)
+    shor_factor_anyN(N=21, n_count=10, shots=8192, work_prep="one", a_trials=3)
