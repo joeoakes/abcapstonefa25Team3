@@ -1,5 +1,7 @@
 from flask import Flask, render_template_string, request
 import subprocess
+# use pip install flask if you don't have flask installed
+# After running the code click on the development server to open the GUI
 
 app = Flask(__name__)
 
@@ -82,10 +84,9 @@ HTML_TEMPLATE = """
 def home():
     output = ""
     action = None
-
+#Buttons for different algorithms such as RSA  and Shor's
     if request.method == 'POST':
         action = request.form.get('action')
-
         # Dummy test commands for demo purposes
         if action == 'generate_rsa':
             output = "RSA keys generated successfully! (p, q, n, e, d)"
