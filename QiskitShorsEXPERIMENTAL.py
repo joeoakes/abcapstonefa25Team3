@@ -11,7 +11,7 @@ try:
     from qiskit.circuit.library import QFTGate as QFT  # not used now, but kept for compat
 except Exception:
     from qiskit.circuit.library import QFT
-from qiskit.circuit.library import UnitaryGate
+from qiskit.circuit.library import UnitaryGate, PermutationGate
 try:
     from qiskit_aer import AerSimulator
 except ModuleNotFoundError:
@@ -26,12 +26,16 @@ YELLOW = "\033[93m"
 CYAN = "\033[96m"
 RESET = "\033[0m"
 
+# if True: do a shallow, single-level decompose for safety; if False: send as-is to Aer (Faster as False)
+USE_FLATTEN = False
+
 def visualize_counts(counts, N, n_count, TOP_K=5):
     # Sort outcomes by integer value (LSB-first convention)
     items = sorted(counts.items(), key=lambda kv: int(kv[0][::-1], 2))
     xs = [int(k[::-1], 2) for k, _ in items]
     ys = [v for _, v in items]
-    probs = [v / sum(ys) for v in ys]
+    total = max(1, sum(ys))
+    probs = [v / total for v in ys]
 
     # Normalize x-axis to fractional phase in [0, 1)
     phases = [x / (1 << n_count) for x in xs]
@@ -39,7 +43,7 @@ def visualize_counts(counts, N, n_count, TOP_K=5):
     plt.figure(figsize=(10, 4))
     plt.bar(phases, probs, width=1 / (1 << n_count), color="skyblue", edgecolor="black")
     plt.title(f"Phase histogram for N={N} (top {TOP_K} peaks highlighted)")
-    plt.xlabel("Measured phase (fraction of 2π)")
+    plt.xlabel("Measured phase (fraction of 2pi)")
     plt.ylabel("Probability")
 
     # Highlight the top-K peaks in red
@@ -95,7 +99,6 @@ def try_factor_from_order(a, r, N):
     return None
 
 
-
 def primes_upto(n):
     # Prime Number helper
     if n < 3:
@@ -107,28 +110,31 @@ def primes_upto(n):
             sieve[p * p:n:p] = [False] * len(range(p * p, n, p))
     return [i for i, v in enumerate(sieve) if v]
 
-_CU_CACHE = {}
 
 def c_mult_mod_N(a, N, n_work):
     # Build a one-controlled unitary that multiplies the work register by 'a modulo N'.
+    # Fully Aer-compatible: build a block-diagonal controlled matrix manually.
     t0 = time.perf_counter()
-    key = (a, N, n_work)
-    if key in _CU_CACHE:
-        print(f"{CYAN}[Cache hit]{RESET} Controlled-U for a={a}, N={N}")
-        return _CU_CACHE[key]
 
     dim = 1 << n_work
-    U = np.zeros((dim, dim), dtype=complex)
-    for y in range(dim):
-        tgt = (a * y) % N if y < N else y
-        U[tgt, y] = 1.0
+    base = np.zeros((dim, dim), dtype=complex)
 
-    Ugate = UnitaryGate(U, label=f"{a}_mod_{N}")
-    CU = Ugate.control(1) # turn the unitary into a controlled unitary with one control qubit
-    _CU_CACHE[key] = CU
+    # Build modular multiplication as a permutation matrix
+    for y in range(N):
+        base[(a * y) % N, y] = 1.0
+    for y in range(N, dim):
+        base[y, y] = 1.0  # keep extra states as identity
+
+    # Construct controlled version manually as a block matrix:
+    ctrl_dim = 2 * dim
+    CU = np.eye(ctrl_dim, dtype=complex)
+    CU[dim:, dim:] = base  # lower-right block = base operation
+
+    gate = UnitaryGate(CU, label=f"CU_{a}_mod_{N}")
+
     t1 = time.perf_counter()
     print(f"{GREEN}[Built Controlled-U]{RESET} a={a}, N={N}, time={t1 - t0:.3f}s")
-    return CU
+    return gate
 
 
 def inverse_qft_no_swaps(qc: QuantumCircuit, qubits):
@@ -147,6 +153,7 @@ def inverse_qft_no_swaps(qc: QuantumCircuit, qubits):
     t1 = time.perf_counter()
     print(f"{YELLOW}[Inverse QFT Complete]{RESET} on {n} qubits, time={t1 - t0:.3f}s")
 
+
 def order_finding_qpe(a, N, n_count, work_prep="one"):
     # Quantum Phase Estimation function!!!!!!!!
     build_start = time.perf_counter()
@@ -160,7 +167,7 @@ def order_finding_qpe(a, N, n_count, work_prep="one"):
     # If "one", set the integer value one by flipping the least significant work qubit.
     # Otherwise, create a uniform superposition across all work states.
 
-    # It's more efficient to start from one because that's ultimately the condition we are looking to satisfy for our 'R' value finder.
+    # It is more efficient to start from one because that is ultimately the condition we are looking to satisfy for our "R" value finder.
     t0 = time.perf_counter()
     if work_prep == "one":
         qc.x(work[0])  # prepare the integer value one
@@ -179,11 +186,17 @@ def order_finding_qpe(a, N, n_count, work_prep="one"):
     # Apply controlled modular multiplications by powers of a
     # The k-th counting qubit controls multiplication by a^(2^k) modulo N
     t0 = time.perf_counter()
+    seen = set()            # avoid building duplicate a^(2^k) mod N values inside this circuit
+    local_gates = {}        # reuse within the same circuit build, no cross-trial caching
     for k in range(n_count):
         a_k = pow(a, 1 << k, N)
         if a_k == 1:
             continue
-        qc.append(c_mult_mod_N(a_k, N, n_work), [count[k]] + list(work))
+        if a_k not in local_gates:
+            # build once for this circuit
+            local_gates[a_k] = c_mult_mod_N(a_k, N, n_work)
+        # append the gate for this control qubit
+        qc.append(local_gates[a_k], [count[k]] + list(work))
     t1 = time.perf_counter()
     print(f"{GREEN}[Controlled Multiplications Done]{RESET} time={t1 - t0:.3f}s")
 
@@ -200,14 +213,19 @@ def order_finding_qpe(a, N, n_count, work_prep="one"):
     print(f"{CYAN}[QPE Circuit Built]{RESET} total build time={build_end - build_start:.3f}s\n")
     return qc
 
+
 def flatten_circuit(qc: QuantumCircuit) -> QuantumCircuit:
     # Recursively flatten the circuit. There are much better ways to do it, but I had to deal with headache errors from stuff like composite gates. (PLEASE FIX THIS LATER SAM)
+    # Optimized: either skip or only do a shallow decompose. Sending composite gates to Aer is fine and much faster.
     t0 = time.perf_counter()
-    while any(getattr(inst.operation, "definition", None) is not None for inst in qc.data):
-        qc = qc.decompose()
+    if USE_FLATTEN:
+        out = qc.decompose(reps=1)  # shallow only
+    else:
+        out = qc                    # skip flattening entirely
     t1 = time.perf_counter()
     print(f"{YELLOW}[Circuit Flattened]{RESET} time={t1 - t0:.3f}s")
-    return qc.decompose()
+    return out
+
 
 def shor_factor_anyN(N: int,
                      n_count=None,
@@ -227,7 +245,13 @@ def shor_factor_anyN(N: int,
     # Build the simulator. Try to use the graphics processing unit. Fall back to the central processor.
     backend = AerSimulator(method="statevector")
     try:
-        backend.set_options(device="GPU", precision="single", fusion_enable=True)
+        backend.set_options(
+            device="GPU",
+            precision="single",
+            fusion_enable=True,
+            max_parallel_threads=4,
+            max_parallel_experiments=2
+        )
         if verbose:
             print("[Backend] GPU statevector + fusion (single precision).")
     except Exception:
@@ -248,7 +272,7 @@ def shor_factor_anyN(N: int,
             print(f"\n\n\n{CYAN}[Trial {i}/{len(primes)}] a={a}{RESET}")
         trial_start = time.perf_counter()
 
-        # Build and flatten the circuit
+        # Build and (optionally) flatten the circuit
         qc = order_finding_qpe(a, N, n_count, work_prep)
         tqc = flatten_circuit(qc)
 
@@ -256,7 +280,7 @@ def shor_factor_anyN(N: int,
         sim_start = time.perf_counter()
         result = backend.run(tqc, shots=shots).result()
         counts = result.get_counts()
-        visualize_counts(counts,N,n_count,TOP_K=5)
+        visualize_counts(counts, N, n_count, TOP_K=5)
         sim_end = time.perf_counter()
         print(f"{YELLOW}[Simulation Complete]{RESET} time={sim_end - sim_start:.3f}s")
 
@@ -332,23 +356,8 @@ def shor_factor_anyN(N: int,
             print(f"{YELLOW}[Analysis Time]{RESET} {analyze_end - analyze_start:.3f}s")
             print(f"{YELLOW}[Tried r values]{RESET} {tested_rs}")
 
-
-        analyze_end = time.perf_counter()
-
-        print(f"{BLUE}[Result]{RESET} result(msb→lsb)={top_raw}  result(lsb→msb)={top_raw_little}")
-        print(f"{BLUE}[Phase]{RESET} phase={phase:.6f} = {frac} → r={r}")
-        print(f"{YELLOW}[Analysis Time]{RESET} {analyze_end - analyze_start:.3f}s")
-
-        fac = try_factor_from_order(a, r, N)
         trial_end = time.perf_counter()
         print(f"{CYAN}[Trial Time]{RESET} {trial_end - trial_start:.3f}s")
-
-        if fac:
-            p, q = fac
-            print(f"{GREEN}[SUCCESS]{RESET} {N} = {p} × {q}  (a={a}, r={r})")
-            total_end = time.perf_counter()
-            print(f"{YELLOW}[TOTAL TIME]{RESET} {total_end - total_start:.3f}s\n")
-            return (p, q)
         if verbose:
             print(f"{BLUE}[Result]{RESET} No nontrivial factors for this a.")
 
@@ -359,6 +368,5 @@ def shor_factor_anyN(N: int,
 
 if __name__ == "__main__":
     # You can change N, the number of counting qubits, the number of shots, and the initial work register preparation here.
-    # For larger N, consider reducing the number of counting qubits to keep runtime reasonable. Right now, it's automatic, but i'll add a seperate setting later.
-    # Works with 35 in about a minute. Next, test with 143?
-    shor_factor_anyN(N=35, n_count=10, shots=8024, work_prep="one", a_trials=6)
+    # For larger N, consider reducing the number of counting qubits to keep runtime reasonable. Right now, it is automatic, but I will add a separate setting later.
+    shor_factor_anyN(N=143, n_count=10, shots=8024, work_prep="one", a_trials=6)
