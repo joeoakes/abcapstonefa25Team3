@@ -1,6 +1,6 @@
 # CHANGELOG — Team 3 Capstone Project (Fall 2025)
 
-All notable progress for **Team 3: RSA & Shor’s Algorithm** is documented here, reconstructed from Scrum reports and the final GitHub activity timeline.
+All notable progress for **Team 3: RSA & Shor’s Algorithm** is documented here.
 
 ---
 
@@ -34,7 +34,6 @@ All notable progress for **Team 3: RSA & Shor’s Algorithm** is documented here
 ---
 
 ## [2025-09-27] — Week 5: Repository Setup & First Code Prototypes
-- GitHub repository created and initialized.
 - Implemented **RSAKeyGen.py** for basic key generation and encryption/decryption tests.
 - Started **ClassicalShors.py** to simulate order-finding using brute-force search.
 - Verified correctness of RSA output with small primes (p, q).
@@ -48,6 +47,7 @@ All notable progress for **Team 3: RSA & Shor’s Algorithm** is documented here
 - Fixed bit ordering issues in measurement results.
 - Successfully factored N=15 and N=21 on Aer simulator.
 - Began documenting results and performance observations.
+- GitHub repository created and initialized.
 
 ---
 
@@ -55,8 +55,8 @@ All notable progress for **Team 3: RSA & Shor’s Algorithm** is documented here
 - Improved circuit visualization using **Matplotlib + pylatexenc**.
 - Standardized quantum logic across Classical and Quantum Shor scripts.
 - Added data logging (`shor_database.txt`) to record factoring attempts and results.
-- Cleaned and renamed files for consistency.
-- Prepared screenshots and results for class demo.
+- Cleaned and fixed files for consistency.
+- Prepared results for class demo.
 
 ---
 
@@ -69,8 +69,8 @@ All notable progress for **Team 3: RSA & Shor’s Algorithm** is documented here
 
 ---
 
-## [2025-10-23] — Final Prep & Submission
-- Finalized code cleanup and documentation (README and changelog).
+## [2025-10-23] — Demo Presentation
+- Finalizing code cleanup and documentation (README and changelog).
 - Completed presentation slides and demo notebook for professor review.
 - Uploaded final repository with reproducible runs and detailed documentation.
 - Confirmed all scripts execute successfully on Colab and local environments.
@@ -83,4 +83,4 @@ All notable progress for **Team 3: RSA & Shor’s Algorithm** is documented here
 
 ---
 
-> This changelog reflects realistic project pacing — research-heavy early weeks and concentrated development during the later stages of the semester.
+> This changelog reflects project pacing — research-heavy early weeks and concentrated development during the later stages of the semester.
