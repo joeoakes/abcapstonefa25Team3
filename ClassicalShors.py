@@ -118,7 +118,7 @@ def run_multiple(limit=20, min_p=5, max_p=50):
             log_to_database(N_val, p_val, q_val, a, r)
             print(f"[{count+1}] Success -> N={N_val}, p={p_val}, q={q_val}, a={a}, r={r}")
             count += 1
-    print("\n✅ Done. Results saved in 'shor_database.txt'.")
+    print("\nDone. Results saved in 'shor_database.txt'.")
 
 
 # Run program
