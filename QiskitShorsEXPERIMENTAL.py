@@ -1,12 +1,15 @@
 # Uncomment or comment this out
-#!pip install qiskit qiskit-aer-gpu-cu11 --upgrade
+#!pip install qiskit qiskit-aer-gpu-cu11 pylatexenc --upgrade
 
 
 import time
 from math import gcd, log2, pi
 from fractions import Fraction
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
+from qiskit.quantum_info import Operator
+from IPython.display import display, Markdown
+from qiskit.visualization import plot_circuit_layout, plot_histogram
 try:
     from qiskit.circuit.library import QFTGate as QFT  # not used now, but kept for compat
 except Exception:
@@ -18,6 +21,7 @@ except ModuleNotFoundError:
     from qiskit.providers.aer import AerSimulator
 import matplotlib.pyplot as plt
 
+
 # colors
 RED = "\033[91m"
 BLUE = "\033[34m"
@@ -28,6 +32,37 @@ RESET = "\033[0m"
 
 # if True: do a shallow, single-level decompose for safety; if False: send as-is to Aer (Faster as False)
 USE_FLATTEN = False
+
+def visualize_qpe_circuit(qc, a, N, backend_mode="mpl", show_layout=False):
+    """
+    Visualizes the QPE circuit for Shor's algorithm in a compact, educational way.
+
+    backend_mode = "mpl" -> Matplotlib visualization (recommended)
+    backend_mode = "text" -> ASCII fallback
+    show_layout = True to also display physical layout (transpiled map)
+    """
+    print(f"\n[Circuit Visualization] Showing QPE circuit for a={a}, N={N}")
+
+    try:
+        # Transpile for a small fake backend layout to make it clean
+        backend = AerSimulator(method="statevector")
+        tqc = transpile(qc, backend=backend, optimization_level=1, seed_transpiler=7)
+
+        # Render diagram
+        if backend_mode == "mpl":
+            display(Markdown(f"**Quantum Circuit for a={a}, N={N}**"))
+            display(tqc.draw(output="mpl", fold=160))
+        elif backend_mode == "text":
+            print(tqc.draw(output="text", fold=160))
+        else:
+            raise ValueError("backend_mode must be 'mpl' or 'text'")
+
+        # Optional layout map visualization
+        if show_layout and backend_mode == "mpl":
+            display(Markdown("**Qubit Layout Map (transpiled)**"))
+            display(plot_circuit_layout(tqc, backend))
+    except Exception as e:
+        print(f"[Visualization Error] {e}")
 
 def visualize_counts(counts, N, n_count, TOP_K=5):
     # Sort outcomes by integer value (LSB-first convention)
@@ -215,7 +250,7 @@ def order_finding_qpe(a, N, n_count, work_prep="one"):
 
 
 def flatten_circuit(qc: QuantumCircuit) -> QuantumCircuit:
-    # Recursively flatten the circuit. There are much better ways to do it, but I had to deal with headache errors from stuff like composite gates. (PLEASE FIX THIS LATER SAM)
+    # Recursively flatten the circuit. There are much better ways to do it, but I had to deal with headache errors from stuff like composite gates. (PLEASE FIX THIS LATER SAM) ((Fixed it later. Now it's optimized))
     # Optimized: either skip or only do a shallow decompose. Sending composite gates to Aer is fine and much faster.
     t0 = time.perf_counter()
     if USE_FLATTEN:
@@ -232,7 +267,8 @@ def shor_factor_anyN(N: int,
                      shots=4096,
                      work_prep="one",
                      a_trials: int = 3,
-                     verbose=True):
+                     verbose=True,
+                     visualize=False):
     total_start = time.perf_counter()
 
     if N < 4:
@@ -274,13 +310,16 @@ def shor_factor_anyN(N: int,
 
         # Build and (optionally) flatten the circuit
         qc = order_finding_qpe(a, N, n_count, work_prep)
+        if(visualize):
+          visualize_qpe_circuit(qc, a, N, backend_mode="mpl", show_layout=False)
         tqc = flatten_circuit(qc)
 
         # Run simulation
         sim_start = time.perf_counter()
         result = backend.run(tqc, shots=shots).result()
         counts = result.get_counts()
-        visualize_counts(counts, N, n_count, TOP_K=5)
+        if(visualize):
+          visualize_counts(counts, N, n_count, TOP_K=5)
         sim_end = time.perf_counter()
         print(f"{YELLOW}[Simulation Complete]{RESET} time={sim_end - sim_start:.3f}s")
 
@@ -369,4 +408,6 @@ def shor_factor_anyN(N: int,
 if __name__ == "__main__":
     # You can change N, the number of counting qubits, the number of shots, and the initial work register preparation here.
     # For larger N, consider reducing the number of counting qubits to keep runtime reasonable. Right now, it is automatic, but I will add a separate setting later.
-    shor_factor_anyN(N=143, n_count=10, shots=8024, work_prep="one", a_trials=6)
+    # N = 143: 10 qubits
+    # N = 437: 
+    shor_factor_anyN(N=143, n_count=10, shots=8024, work_prep="one", a_trials=10,visualize=False)
