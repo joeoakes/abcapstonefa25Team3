@@ -1,6 +1,7 @@
 # Uncomment or comment this out
 #!pip install qiskit qiskit-aer-gpu-cu11 --upgrade
 
+
 import time
 from math import gcd, log2, pi
 from fractions import Fraction
@@ -15,6 +16,7 @@ try:
     from qiskit_aer import AerSimulator
 except ModuleNotFoundError:
     from qiskit.providers.aer import AerSimulator
+import matplotlib.pyplot as plt
 
 # colors
 RED = "\033[91m"
@@ -23,6 +25,31 @@ GREEN = "\033[92m"
 YELLOW = "\033[93m"
 CYAN = "\033[96m"
 RESET = "\033[0m"
+
+def visualize_counts(counts, N, n_count, TOP_K=5):
+    # Sort outcomes by integer value (LSB-first convention)
+    items = sorted(counts.items(), key=lambda kv: int(kv[0][::-1], 2))
+    xs = [int(k[::-1], 2) for k, _ in items]
+    ys = [v for _, v in items]
+    probs = [v / sum(ys) for v in ys]
+
+    # Normalize x-axis to fractional phase in [0, 1)
+    phases = [x / (1 << n_count) for x in xs]
+
+    plt.figure(figsize=(10, 4))
+    plt.bar(phases, probs, width=1 / (1 << n_count), color="skyblue", edgecolor="black")
+    plt.title(f"Phase histogram for N={N} (top {TOP_K} peaks highlighted)")
+    plt.xlabel("Measured phase (fraction of 2π)")
+    plt.ylabel("Probability")
+
+    # Highlight the top-K peaks in red
+    top = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:TOP_K]
+    for k, v in top:
+        idx = int(k[::-1], 2)
+        phase = idx / (1 << n_count)
+        plt.axvline(phase, color="red", linestyle="--", alpha=0.7)
+
+    plt.show()
 
 
 def n_qubits_for(N: int):
@@ -34,15 +61,40 @@ def continued_fraction_phase(p, d):
 
 def try_factor_from_order(a, r, N):
     # Factor Ordering helper for Shor's Algorithm testing. (Validating if the R value is even nontrivial)
-    if r % 2:
+    if r <= 0:
+        print(f"[Order Check] r={r} is invalid. Skipping.")
         return None
+    if r % 2 != 0:
+        print(f"[Order Check] r={r} is odd. Skipping.")
+        return None
+
+    # Compute a^(r/2) mod N
     x = pow(a, r // 2, N)
+
+    # If x is congruent to 1 or N-1, it gives trivial factors
     if x in (1, 0, N - 1):
+        print(f"[Trivial Result] a^({r//2}) mod {N} = {x}. No useful factors.")
         return None
-    p, q = gcd(x - 1, N), gcd(x + 1, N)
-    if 1 < p < N and 1 < q < N:
-        return (p, q)
+
+    # Compute the candidate factors
+    p = gcd(x - 1, N)
+    q = gcd(x + 1, N)
+
+    # Display intermediate gcd results for debugging
+    print(f"[GCD Test] a={a}, r={r}, x={x}, gcd(x-1,N)={p}, gcd(x+1,N)={q}")
+
+    # Accept if either side is a nontrivial factor
+    if 1 < p < N:
+        print("P was nontrivial!")
+        return (p, N // p)
+    if 1 < q < N:
+        print("Q was nontrivial!")
+        return (q, N // q)
+
+    print(f"[No Factors] gcd results not useful (p={p}, q={q}) for a={a}, r={r}")
     return None
+
+
 
 def primes_upto(n):
     # Prime Number helper
@@ -204,18 +256,83 @@ def shor_factor_anyN(N: int,
         sim_start = time.perf_counter()
         result = backend.run(tqc, shots=shots).result()
         counts = result.get_counts()
+        visualize_counts(counts,N,n_count,TOP_K=5)
         sim_end = time.perf_counter()
         print(f"{YELLOW}[Simulation Complete]{RESET} time={sim_end - sim_start:.3f}s")
 
         # Analyze result
+        # Identify the most frequent outcomes to reduce the effect of sampling noise
         analyze_start = time.perf_counter()
-        top = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:3]
-        top_raw = top[0][0]
-        top_raw_little = top_raw[::-1]
-        avg = sum(int(k[::-1], 2) * v for k, v in top) / sum(v for _, v in top)
-        phase = avg / (1 << n_count)
-        frac = continued_fraction_phase(round(phase, 8), d=2 * N)
-        r = frac.denominator
+        TOP_K = 6  # number of most frequent bitstrings to test (you can change this)
+        top = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:TOP_K]
+
+        # Qiskit prints bitstrings with the most significant bit on the left.
+        # Kind of annoying. We have to reverse the bitstring before converting to an integer.
+        found = None
+        picked_peak = None
+        picked_frac = None
+        picked_phase = None
+
+        # Initialize safe defaults in case no valid order is found
+        phase = 0.0
+        frac = Fraction(0, 1)
+        r = 0
+
+        tested_rs = []  # keep a log of all r candidates for debugging
+
+        # Sam Optimization: Instead of averaging, check each of the top peaks individually.
+        # Each bitstring corresponds to a measured phase that may reveal the correct order (r).
+        for j, (bitstr, weight) in enumerate(top, start=1):
+            idx = int(bitstr[::-1], 2)
+            phase = idx / float(1 << n_count)
+            # Use a continued fraction with a denominator limited by twice N to estimate s over r
+            frac = Fraction(round(phase, 8)).limit_denominator(2 * N)
+            r_candidate = frac.denominator
+            r = r_candidate  # update for reporting even if not useful
+            tested_rs.append(r_candidate)
+
+            # Always print the candidate phase and r, even if r == 1 or r is odd
+            print(f"{BLUE}[Peak {j}/{TOP_K}]{RESET} bitstr={bitstr}  weight={weight}  "
+                  f"phase={phase:.6f}  = {frac}  -> r={r_candidate}")
+
+            # Try to turn the candidate order into nontrivial factors of N
+            test = try_factor_from_order(a, r_candidate, N)
+            if test:
+                found = test
+                picked_peak = bitstr
+                picked_frac = frac
+                picked_phase = phase
+                break
+
+        analyze_end = time.perf_counter()
+
+        # If we found a valid factor
+        if found:
+            p, q = found
+            top_raw = picked_peak
+            top_raw_little = top_raw[::-1]
+            print(f"{BLUE}[Result]{RESET} result(msb->lsb)={top_raw}  result(lsb->msb)={top_raw_little}")
+            print(f"{BLUE}[Phase]{RESET} phase={picked_phase:.6f}  = {picked_frac}  -> r={picked_frac.denominator}")
+            print(f"{YELLOW}[Analysis Time]{RESET} {analyze_end - analyze_start:.3f}s")
+            print(f"{GREEN}[Nontrivial Factors Found]{RESET} p={p}, q={q} from a={a}, r={picked_frac.denominator}")
+            trial_end = time.perf_counter()
+            print(f"{CYAN}[Trial Time]{RESET} {trial_end - trial_start:.3f}s")
+            print(f"{GREEN}[SUCCESS]{RESET} {N} = {p} x {q}  (a={a}, r={picked_frac.denominator})")
+            total_end = time.perf_counter()
+            print(f"{YELLOW}[TOTAL TIME]{RESET} {total_end - total_start:.3f}s\n")
+            return (p, q)
+
+        # Otherwise, if no peaks factored N
+        else:
+            # Just print info from the most frequent bitstring for logging
+            top_raw = top[0][0] if top else "?"
+            top_raw_little = top_raw[::-1] if top else "?"
+            print(f"{BLUE}[Result]{RESET} result(msb->lsb)={top_raw}  result(lsb->msb)={top_raw_little}")
+            print(f"{BLUE}[Phase]{RESET} phase={phase:.6f} = {frac} -> r={r}")
+            print(f"{YELLOW}[Analysis Time]{RESET} {analyze_end - analyze_start:.3f}s")
+            print(f"{YELLOW}[Tried r values]{RESET} {tested_rs}")
+
+
         analyze_end = time.perf_counter()
 
         print(f"{BLUE}[Result]{RESET} result(msb→lsb)={top_raw}  result(lsb→msb)={top_raw_little}")
@@ -243,4 +360,5 @@ def shor_factor_anyN(N: int,
 if __name__ == "__main__":
     # You can change N, the number of counting qubits, the number of shots, and the initial work register preparation here.
     # For larger N, consider reducing the number of counting qubits to keep runtime reasonable. Right now, it's automatic, but i'll add a seperate setting later.
-    shor_factor_anyN(N=21, n_count=10, shots=8192, work_prep="one", a_trials=3)
+    # Works with 35 in about a minute. Next, test with 143?
+    shor_factor_anyN(N=35, n_count=10, shots=8024, work_prep="one", a_trials=6)
