@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Team 3 Capstone — RSA & Shor’s Algorithm</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd, #e8f5e9);
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 15px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        h3 {
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .container {
+            display: inline-block;
+            background: white;
+            padding: 40px;
+            margin-top: 50px;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .container:hover {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            justify-items: center;
+        }
+
+        button {
+            padding: 15px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            transition: 0.3s ease-in-out;
+            width: 200px;
+        }
+
+        .rsa { background-color: #4CAF50; }
+        .classical { background-color: #2196F3; }
+        .quantum { background-color: #9C27B0; }
+        .quantum_hamming { background-color: #FF5722; }
+
+        button:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        #loading {
+            display: none;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        pre {
+            text-align: left;
+            background: #1e1e1e;
+            color: #00ff99;
+            padding: 15px;
+            border-radius: 10px;
+            width: 80%;
+            margin: 30px auto;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+
+        footer {
+            margin-top: 50px;
+            color: #888;
+            font-size: 14px;
+            padding-bottom: 30px;
+        }
+
+        a.download-link {
+            color: #1565C0;
+            display: inline-block;
+            margin-top: 10px;
+            text-decoration: none;
+        }
+
+        a.download-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h1> Team 3 Capstone: QuantumX Cryptosystem</h1>
+    </nav>
+
+    <h3>Penn State Abington — Fall 2025</h3>
+
+    <div class="container">
+        <h2>Choose an Algorithm</h2>
+        <form method="POST">
+            <button name="action" value="generate_rsa" class="rsa"> Generate RSA Keys</button>
+            <button name="action" value="run_classical" class="classical"> Run Example of Classical Shor</button>
+            <button name="action" value="run_quantum" class="quantum">Run example of Quantum Shor</button>
+            <button name="action" value="run_quantum_hamming" class="quantum_hamming"> Quantum + Hamming Example</button>
+        </form>
+        <div id="loading">⏳ Running algorithm...</div>
+    </div>
+
+    {% if action %}
+        <h2>Output: {{ action.replace('_', ' ').title() }}</h2>
+        <pre>{{ output }}</pre>
+        <a href="#" download="results.txt" class="download-link">⬇ Download Output</a>
+    {% endif %}
+
+    <footer>
+        <p>Developed by Team Xtreme — Sam Axler, Matthew Danese, Chris Joo, John Teetz, William Lawther, Rahul Reji, Martin Shestani</p>
+    </footer>
+
+    <script>
+        const buttons = document.querySelectorAll("button");
+        const loading = document.getElementById("loading");
+
+        buttons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                loading.style.display = "block";
+            });
+        });
+    </script>
+</body>
+</html>
