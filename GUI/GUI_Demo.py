@@ -16,7 +16,7 @@ def home():
         action = request.form.get('action')
 
         if action == 'generate_rsa':
-            # Generate keys using your group's existing function
+            # Generate keys using the function from the RSAKeyGen file 
             public_key, private_key = generate_rsa_keys(bits=8)
             output = (
                 " RSA Keys Generated Successfully!\n\n"
@@ -26,7 +26,7 @@ def home():
             )
 
         elif action == 'run_classical':
-            # Run your classical Shor’s algorithm
+            # Run the classical Shor’s algorithm from ClassicalShors.py
             try:
                 import io
                 import sys
@@ -35,7 +35,7 @@ def home():
                 buffer = io.StringIO()
                 sys.stdout = buffer
 
-                # Run the algorithm (you can change parameters for speed)
+                # Run the algorithm (change parameters for speed if necessary)
                 run_multiple(limit=5, min_p=10, max_p=40, max_attempts=20)
 
                 sys.stdout = sys.__stdout__
@@ -54,7 +54,7 @@ def home():
 
         else:
             output = "No action performed."
-
+    #Load the index file
     return render_template("index.html", output=output, action=action)
 
 if __name__ == '__main__':
