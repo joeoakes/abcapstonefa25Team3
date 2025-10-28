@@ -1,5 +1,20 @@
 # Uncomment or comment this out
 #!pip install qiskit qiskit-aer-gpu-cu11 pylatexenc --upgrade
+from colorama import Fore, Style, init
+import datetime
+init(autoreset=True)
+
+def Log(message, color=Fore.WHITE):
+    """Prints a colored message to console and writes it to log.txt."""
+    timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
+    formatted_message = f"{timestamp} {message}"
+
+    # Print to console
+    print(color + formatted_message + Style.RESET_ALL)
+
+    # Write to log file
+    with open("log.txt", "a", encoding="utf-8") as log_file:
+        log_file.write(formatted_message + "\n")
 
 
 import time
