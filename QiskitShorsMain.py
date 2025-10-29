@@ -56,7 +56,7 @@ def visualize_qpe_circuit(qc, a, N, backend_mode="mpl", show_layout=False):
     backend_mode = "text" -> ASCII fallback
     show_layout = True to also display physical layout (transpiled map)
     """
-    log(f"\n[Circuit Visualization] Showing QPE circuit for a={a}, N={N}", Fore.CYAN)
+    Log(f"\n[Circuit Visualization] Showing QPE circuit for a={a}, N={N}", Fore.CYAN)
 
     try:
         # Transpile for a small fake backend layout to make it clean
@@ -68,7 +68,7 @@ def visualize_qpe_circuit(qc, a, N, backend_mode="mpl", show_layout=False):
             display(Markdown(f"**Quantum Circuit for a={a}, N={N}**"))
             display(tqc.draw(output="mpl", fold=160))
         elif backend_mode == "text":
-            print(tqc.draw(output="text", fold=160))
+            Log(tqc.draw(output="text", fold=160), Fore.CYAN)
         else:
             raise ValueError("backend_mode must be 'mpl' or 'text'")
 
@@ -77,7 +77,7 @@ def visualize_qpe_circuit(qc, a, N, backend_mode="mpl", show_layout=False):
             display(Markdown("**Qubit Layout Map (transpiled)**"))
             display(plot_circuit_layout(tqc, backend))
     except Exception as e:
-        print(f"[Visualization Error] {e}")
+        Log(f"[Visualization Error] {e}", Fore.CYAN)
 
 def visualize_counts(counts, N, n_count, TOP_K=5):
     # Sort outcomes by integer value (LSB-first convention)
@@ -116,10 +116,10 @@ def continued_fraction_phase(p, d):
 def try_factor_from_order(a, r, N):
     # Factor Ordering helper for Shor's Algorithm testing. (Validating if the R value is even nontrivial)
     if r <= 0:
-        print(f"[Order Check] r={r} is invalid. Skipping.")
+        Log(f"[Order Check] r={r} is invalid. Skipping.", Fore.CYAN)
         return None
     if r % 2 != 0:
-        print(f"[Order Check] r={r} is odd. Skipping.")
+        Log(f"[Order Check] r={r} is odd. Skipping.", Fore.CYAN)
         return None
 
     # Compute a^(r/2) mod N
@@ -127,7 +127,7 @@ def try_factor_from_order(a, r, N):
 
     # If x is congruent to 1 or N-1, it gives trivial factors
     if x in (1, 0, N - 1):
-        print(f"[Trivial Result] a^({r//2}) mod {N} = {x}. No useful factors.")
+        Log(f"[Trivial Result] a^({r//2}) mod {N} = {x}. No useful factors.", Fore.CYAN)
         return None
 
     # Compute the candidate factors
@@ -135,17 +135,17 @@ def try_factor_from_order(a, r, N):
     q = gcd(x + 1, N)
 
     # Display intermediate gcd results for debugging
-    log(f"[GCD Test] a={a}, r={r}, x={x}, gcd(x-1,N)={p}, gcd(x+1,N)={q}", Fore.CYAN)
+    Log(f"[GCD Test] a={a}, r={r}, x={x}, gcd(x-1,N)={p}, gcd(x+1,N)={q}", Fore.CYAN)
 
     # Accept if either side is a nontrivial factor
     if 1 < p < N:
-        log("P was nontrivial!", Fore.CYAN)
+        Log("P was nontrivial!", Fore.CYAN)
         return (p, N // p)
     if 1 < q < N:
-        log("Q was nontrivial!", Fore.CYAN)
+        Log("Q was nontrivial!", Fore.CYAN)
         return (q, N // q)
 
-    log(f"[No Factors] gcd results not useful (p={p}, q={q}) for a={a}, r={r}", Fore.CYAN)
+    Log(f"[No Factors] gcd results not useful (p={p}, q={q}) for a={a}, r={r}", Fore.CYAN)
     return None
 
 
@@ -183,7 +183,7 @@ def c_mult_mod_N(a, N, n_work):
     gate = UnitaryGate(CU, label=f"CU_{a}_mod_{N}")
 
     t1 = time.perf_counter()
-    log(f"{GREEN}[Built Controlled-U]{RESET} a={a}, N={N}, time={t1 - t0:.3f}s", Fore.CYAN)
+    Log(f"{GREEN}[Built Controlled-U]{RESET} a={a}, N={N}, time={t1 - t0:.3f}s", Fore.CYAN)
     return gate
 
 
@@ -201,7 +201,7 @@ def inverse_qft_no_swaps(qc: QuantumCircuit, qubits):
         # Apply a Hadamard to convert phase into amplitude on this qubit
         qc.h(qubits[j])
     t1 = time.perf_counter()
-    log(f"{YELLOW}[Inverse QFT Complete]{RESET} on {n} qubits, time={t1 - t0:.3f}s", Fore.CYAN)
+    Log(f"{YELLOW}[Inverse QFT Complete]{RESET} on {n} qubits, time={t1 - t0:.3f}s", Fore.CYAN)
 
 
 def order_finding_qpe(a, N, n_count, work_prep="one"):
@@ -225,13 +225,13 @@ def order_finding_qpe(a, N, n_count, work_prep="one"):
         for q in work:
             qc.h(q)
     t1 = time.perf_counter()
-    log(f"{GREEN}[Work Register Prepared]{RESET} time={t1 - t0:.3f}s", Fore.CYAN)
+    Log(f"{GREEN}[Work Register Prepared]{RESET} time={t1 - t0:.3f}s", Fore.CYAN)
 
     # Put the counting register into superposition
     t0 = time.perf_counter()
     qc.h(count)
     t1 = time.perf_counter()
-    log(f"{GREEN}[Count Register Superposition]{RESET} time={t1 - t0:.3f}s",Fore.CYAN)
+    Log(f"{GREEN}[Count Register Superposition]{RESET} time={t1 - t0:.3f}s",Fore.CYAN)
 
     # Apply controlled modular multiplications by powers of a
     # The k-th counting qubit controls multiplication by a^(2^k) modulo N
@@ -248,7 +248,7 @@ def order_finding_qpe(a, N, n_count, work_prep="one"):
         # append the gate for this control qubit
         qc.append(local_gates[a_k], [count[k]] + list(work))
     t1 = time.perf_counter()
-    log(f"{GREEN}[Controlled Multiplications Done]{RESET} time={t1 - t0:.3f}s", Fore.CYAN)
+    Log(f"{GREEN}[Controlled Multiplications Done]{RESET} time={t1 - t0:.3f}s", Fore.CYAN)
 
     # Decode the phase with the inverse Quantum Fourier Transform
     inverse_qft_no_swaps(qc, list(count))
@@ -257,7 +257,7 @@ def order_finding_qpe(a, N, n_count, work_prep="one"):
     t0 = time.perf_counter()
     qc.measure(count, cl)
     t1 = time.perf_counter()
-    log(f"{GREEN}[Measurement Added]{RESET} time={t1 - t0:.3f}s", Fore.CYAN)
+    Log(f"{GREEN}[Measurement Added]{RESET} time={t1 - t0:.3f}s", Fore.CYAN)
 
     build_end = time.perf_counter()
     Fore.CYAN(f"{CYAN}[QPE Circuit Built]{RESET} total build time={build_end - build_start:.3f}s\n", Fore.CYAN)
@@ -273,7 +273,7 @@ def flatten_circuit(qc: QuantumCircuit) -> QuantumCircuit:
     else:
         out = qc                    # skip flattening entirely
     t1 = time.perf_counter()
-    log(f"{YELLOW}[Circuit Flattened]{RESET} time={t1 - t0:.3f}s", Fore.CYAN)
+    Log(f"{YELLOW}[Circuit Flattened]{RESET} time={t1 - t0:.3f}s", Fore.CYAN)
     return out
 
 
@@ -287,7 +287,7 @@ def shor_factor_anyN(N: int,
     total_start = time.perf_counter()
 
     if N < 4:
-        log("[Info] N too small.", Fore.CYAN)
+        Log("[Info] N too small.", Fore.CYAN)
         return None
     # Auto select counting qubits if none are selected.
     if n_count is None:
@@ -304,9 +304,9 @@ def shor_factor_anyN(N: int,
             max_parallel_experiments=2
         )
         if verbose:
-            log("[Backend] GPU statevector + fusion (single precision).", Fore.CYAN)
+            Log("[Backend] GPU statevector + fusion (single precision).", Fore.CYAN)
     except Exception:
-        log("[Backend] CPU fallback.",Fore.CYAN)
+        Log("[Backend] CPU fallback.",Fore.CYAN)
 
     # Choose candidate a values
     primes = [p for p in primes_upto(N) if p % 2 and gcd(p, N) == 1 and p > 2][:a_trials]
@@ -314,13 +314,13 @@ def shor_factor_anyN(N: int,
         primes = [a for a in range(3, N, 2) if gcd(a, N) == 1][:a_trials]
 
     if verbose:
-        log(f"[Setup] N={N}, n_count={n_count}, work_qubits={n_qubits_for(N)}",Fore.CYAN)
-        log(f"[Setup] Trying {len(primes)} a values (prime, odd, coprime): {primes}",Fore.CYAN)
+        Log(f"[Setup] N={N}, n_count={n_count}, work_qubits={n_qubits_for(N)}",Fore.CYAN)
+        Log(f"[Setup] Trying {len(primes)} a values (prime, odd, coprime): {primes}",Fore.CYAN)
 
     # Try each candidate a value
     for i, a in enumerate(primes, 1):
         if verbose:
-            log(f"\n\n\n{CYAN}[Trial {i}/{len(primes)}] a={a}{RESET}", Fore.CYAN)
+            Log(f"\n\n\n{CYAN}[Trial {i}/{len(primes)}] a={a}{RESET}", Fore.CYAN)
         trial_start = time.perf_counter()
 
         # Build and (optionally) flatten the circuit
@@ -336,7 +336,7 @@ def shor_factor_anyN(N: int,
         if(visualize):
           visualize_counts(counts, N, n_count, TOP_K=5)
         sim_end = time.perf_counter()
-        log(f"{YELLOW}[Simulation Complete]{RESET} time={sim_end - sim_start:.3f}s", Fore.CYAN)
+        Log(f"{YELLOW}[Simulation Complete]{RESET} time={sim_end - sim_start:.3f}s", Fore.CYAN)
 
         # Analyze result
         # Identify the most frequent outcomes to reduce the effect of sampling noise
@@ -370,7 +370,7 @@ def shor_factor_anyN(N: int,
             tested_rs.append(r_candidate)
 
             # Always print the candidate phase and r, even if r == 1 or r is odd
-            log(f"{BLUE}[Peak {j}/{TOP_K}]{RESET} bitstr={bitstr}  weight={weight, }  "
+            Log(f"{BLUE}[Peak {j}/{TOP_K}]{RESET} bitstr={bitstr}  weight={weight, }  "
                   f"phase={phase:.6f}  = {frac}  -> r={r_candidate}", Fore.CYAN)
 
             # Try to turn the candidate order into nontrivial factors of N
@@ -389,15 +389,15 @@ def shor_factor_anyN(N: int,
             p, q = found
             top_raw = picked_peak
             top_raw_little = top_raw[::-1]
-            log(f"{BLUE}[Result]{RESET} result(msb->lsb)={top_raw}  result(lsb->msb)={top_raw_little}", Fore.CYAN)
-            log(f"{BLUE}[Phase]{RESET} phase={picked_phase:.6f}  = {picked_frac}  -> r={picked_frac.denominator}", Fore.CYAN)
-            log(f"{YELLOW}[Analysis Time]{RESET} {analyze_end - analyze_start:.3f}s",Fore.CYAN)
-            log(f"{GREEN}[Nontrivial Factors Found]{RESET} p={p}, q={q} from a={a}, r={picked_frac.denominator}",Fore.CYAN)
+            Log(f"{BLUE}[Result]{RESET} result(msb->lsb)={top_raw}  result(lsb->msb)={top_raw_little}", Fore.CYAN)
+            Log(f"{BLUE}[Phase]{RESET} phase={picked_phase:.6f}  = {picked_frac}  -> r={picked_frac.denominator}", Fore.CYAN)
+            Log(f"{YELLOW}[Analysis Time]{RESET} {analyze_end - analyze_start:.3f}s",Fore.CYAN)
+            Log(f"{GREEN}[Nontrivial Factors Found]{RESET} p={p}, q={q} from a={a}, r={picked_frac.denominator}",Fore.CYAN)
             trial_end = time.perf_counter()
-            log(f"{CYAN}[Trial Time]{RESET} {trial_end - trial_start:.3f}s", Fore.CYAN)
-            log(f"{GREEN}[SUCCESS]{RESET} {N} = {p} x {q}  (a={a}, r={picked_frac.denominator})", Fore.CYAN)
+            Log(f"{CYAN}[Trial Time]{RESET} {trial_end - trial_start:.3f}s", Fore.CYAN)
+            Log(f"{GREEN}[SUCCESS]{RESET} {N} = {p} x {q}  (a={a}, r={picked_frac.denominator})", Fore.CYAN)
             total_end = time.perf_counter()
-            log(f"{YELLOW}[TOTAL TIME]{RESET} {total_end - total_start:.3f}s\n", Fore.CYAN)
+            Log(f"{YELLOW}[TOTAL TIME]{RESET} {total_end - total_start:.3f}s\n", Fore.CYAN)
             return (p, q)
 
         # Otherwise, if no peaks factored N
@@ -405,18 +405,18 @@ def shor_factor_anyN(N: int,
             # Just print info from the most frequent bitstring for logging
             top_raw = top[0][0] if top else "?"
             top_raw_little = top_raw[::-1] if top else "?"
-            log(f"{BLUE}[Result]{RESET} result(msb->lsb)={top_raw}  result(lsb->msb)={top_raw_little}", Fore.CYAN)
-            log(f"{BLUE}[Phase]{RESET} phase={phase:.6f} = {frac} -> r={r}", Fore.CYAN)
-            log(f"{YELLOW}[Analysis Time]{RESET} {analyze_end - analyze_start:.3f}s", Fore.CYAN)
-            log(f"{YELLOW}[Tried r values]{RESET} {tested_rs}", Fore.CYAN)
+            Log(f"{BLUE}[Result]{RESET} result(msb->lsb)={top_raw}  result(lsb->msb)={top_raw_little}", Fore.CYAN)
+            Log(f"{BLUE}[Phase]{RESET} phase={phase:.6f} = {frac} -> r={r}", Fore.CYAN)
+            Log(f"{YELLOW}[Analysis Time]{RESET} {analyze_end - analyze_start:.3f}s", Fore.CYAN)
+            Log(f"{YELLOW}[Tried r values]{RESET} {tested_rs}", Fore.CYAN)
 
         trial_end = time.perf_counter()
-        log(f"{CYAN}[Trial Time]{RESET} {trial_end - trial_start:.3f}s", Fore.CYAN)
+        Log(f"{CYAN}[Trial Time]{RESET} {trial_end - trial_start:.3f}s", Fore.CYAN)
         if verbose:
-            log(f"{BLUE}[Result]{RESET} No nontrivial factors for this a.", Fore.CYAN)
+            Log(f"{BLUE}[Result]{RESET} No nontrivial factors for this a.", Fore.CYAN)
 
     total_end = time.perf_counter()
-    log(f"{RED}[FAIL]{RESET} No factors found with current settings. Total run time={total_end - total_start:.3f}s", Fore.CYAN)
+    Log(f"{RED}[FAIL]{RESET} No factors found with current settings. Total run time={total_end - total_start:.3f}s", Fore.CYAN)
     return None
 
 
