@@ -260,7 +260,7 @@ def order_finding_qpe(a, N, n_count, work_prep="one"):
     Log(f"{GREEN}[Measurement Added]{RESET} time={t1 - t0:.3f}s", Fore.CYAN)
 
     build_end = time.perf_counter()
-    Fore.CYAN(f"{CYAN}[QPE Circuit Built]{RESET} total build time={build_end - build_start:.3f}s\n", Fore.CYAN)
+    Log(f"{CYAN}[QPE Circuit Built]{RESET} total build time={build_end - build_start:.3f}s\n", Fore.CYAN)
     return qc
 
 
