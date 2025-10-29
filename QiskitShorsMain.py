@@ -1,11 +1,12 @@
 # Uncomment or comment this out
-#!pip install qiskit qiskit-aer-gpu-cu11 pylatexenc --upgrade
+#!pip install qiskit qiskit-aer-gpu-cu11 pylatexenc colorama --upgrade
 from colorama import Fore, Style, init
 import datetime
+import random
 init(autoreset=True)
 
 def Log(message, color=Fore.WHITE):
-    """Prints a colored message to console and writes it to log.txt."""
+    # Prints a colored message to console and writes it to log.txt.
     timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
     formatted_message = f"{timestamp} {message}"
 
@@ -48,14 +49,40 @@ RESET = "\033[0m"
 # if True: do a shallow, single-level decompose for safety; if False: send as-is to Aer (Faster as False)
 USE_FLATTEN = False
 
-def visualize_qpe_circuit(qc, a, N, backend_mode="mpl", show_layout=False):
-    """
-    Visualizes the QPE circuit for Shor's algorithm in a compact, educational way.
+def pick_diverse_a_values(N, a_trials=6, seed=None):
+    #Choose diverse, coprime 'a' values for Shor's algorithm runs.
+    #Spreads them across [3, N-2] instead of taking consecutive numbers.
+    if seed is not None:
+        random.seed(seed)
 
-    backend_mode = "mpl" -> Matplotlib visualization (recommended)
-    backend_mode = "text" -> ASCII fallback
-    show_layout = True to also display physical layout (transpiled map)
-    """
+    candidates = [a for a in range(3, N, 2) if gcd(a, N) == 1]  # odd, coprime only
+    if len(candidates) == 0:
+        raise ValueError(f"No coprime candidates found for N={N}")
+
+    # Always include some simple, low primes for safety
+    primes = [p for p in primes_upto(N) if p % 2 and gcd(p, N) == 1 and p > 2]
+    base = primes[:min(3, len(primes))]
+
+    # Add random + spaced samples from the remaining candidates
+    remaining = [a for a in candidates if a not in base]
+    if remaining:
+        step = max(1, len(remaining) // max(1, a_trials - len(base)))
+        # evenly spaced + random shuffle for variety
+        spaced = remaining[::step]
+        random.shuffle(spaced)
+        base += spaced[:max(0, a_trials - len(base))]
+
+    # Clamp to a_trials and ensure uniqueness
+    result = sorted(set(base))[:a_trials]
+    Log(f"[Setup] Selected diversified a values: {result}", Fore.CYAN)
+    return result
+
+def visualize_qpe_circuit(qc, a, N, backend_mode="mpl", show_layout=False):
+    #Visualizes the QPE circuit for Shor's algorithm in a compact, educational way.
+
+    #backend_mode = "mpl" -> Matplotlib visualization (recommended)
+    #backend_mode = "text" -> ASCII fallback
+    #show_layout = True to also display physical layout (transpiled map)
     Log(f"\n[Circuit Visualization] Showing QPE circuit for a={a}, N={N}", Fore.CYAN)
 
     try:
@@ -309,9 +336,7 @@ def shor_factor_anyN(N: int,
         Log("[Backend] CPU fallback.",Fore.CYAN)
 
     # Choose candidate a values
-    primes = [p for p in primes_upto(N) if p % 2 and gcd(p, N) == 1 and p > 2][:a_trials]
-    if not primes:
-        primes = [a for a in range(3, N, 2) if gcd(a, N) == 1][:a_trials]
+    primes = pick_diverse_a_values(N, a_trials=a_trials, seed=7)
 
     if verbose:
         Log(f"[Setup] N={N}, n_count={n_count}, work_qubits={n_qubits_for(N)}",Fore.CYAN)
