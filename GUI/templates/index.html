@@ -38,6 +38,7 @@
             border-radius: 20px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.1);
             transition: all 0.3s ease-in-out;
+            width: 500px;
         }
 
         .container:hover {
@@ -45,10 +46,48 @@
         }
 
         form {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 15px;
-            justify-items: center;
+        }
+
+        .settings-section {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            width: 90%;
+            text-align: left;
+        }
+
+        .settings-section h3 {
+            margin: 0 0 10px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-weight: 500;
+            color: #444;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 45%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.2);
+            margin-right: 6px;
         }
 
         button {
@@ -59,7 +98,7 @@
             cursor: pointer;
             color: white;
             transition: 0.3s ease-in-out;
-            width: 200px;
+            width: 220px;
         }
 
         .rsa { background-color: #4CAF50; }
@@ -115,11 +154,18 @@
         a.download-link:hover {
             text-decoration: underline;
         }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
     <nav>
-        <h1> Team 3 Capstone: QuantumX Cryptosystem</h1>
+        <h1>Team 3 Capstone: QuantumX Cryptosystem</h1>
     </nav>
 
     <h3>Penn State Abington — Fall 2025</h3>
@@ -127,11 +173,37 @@
     <div class="container">
         <h2>Choose an Algorithm</h2>
         <form method="POST">
-            <button name="action" value="generate_rsa" class="rsa"> Generate RSA Keys</button>
-            <button name="action" value="run_classical" class="classical"> Run Example of Classical Shor</button>
-            <button name="action" value="run_quantum" class="quantum">Run example of Quantum Shor</button>
-            <button name="action" value="run_quantum_hamming" class="quantum_hamming"> Quantum + Hamming Example</button>
+            
+            <!-- RSA SETTINGS -->
+            <div class="settings-section">
+                <h3>RSA Settings</h3>
+                <div class="settings-row">
+                    <label>Min Prime (p):</label>
+                    <input type="number" name="min_p" value="5">
+                    <label>Max Prime (q):</label>
+                    <input type="number" name="max_p" value="50">
+                </div>
+            </div>
+
+            <!-- QUANTUM SHOR SETTINGS -->
+            <div class="settings-section">
+                <h3>Quantum Shor Settings</h3>
+                <div class="settings-row">
+                    <label>N value:</label>
+                    <input type="number" name="N_value" placeholder="Enter N (e.g., 143)">
+                </div>
+                <label><input type="checkbox" name="use_rsa_n" value="true"> Use RSA N value</label>
+            </div>
+
+            <!-- BUTTON GRID -->
+            <div class="button-grid">
+                <button name="action" value="generate_rsa" class="rsa">Generate RSA Keys</button>
+                <button name="action" value="run_classical" class="classical">Run Classical Shor</button>
+                <button name="action" value="run_quantum" class="quantum">Run Quantum Shor</button>
+                <button name="action" value="run_quantum_hamming" class="quantum_hamming">Quantum + Hamming</button>
+            </div>
         </form>
+
         <div id="loading">Running algorithm...</div>
     </div>
 
