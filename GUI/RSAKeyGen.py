@@ -73,7 +73,8 @@ def generate_rsa_keys(bits=8):
         f.write(str(private_key))
     print("\nKeys saved as public_key.txt and private_key.txt")
 
-    return public_key, private_key
+    return (e, d, n)
+
 
 
 # run the generator
