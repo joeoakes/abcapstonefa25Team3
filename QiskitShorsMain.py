@@ -1,3 +1,12 @@
+# Project: Quantum Shors
+# Purpose Details: A Quantum Shor's Algorithm. Maximum N value is currently around 450.
+# Course: 488 CMPSC
+# Author: Sam Axler
+# Date Developed: 
+# Last Date Changed: 11/1
+# Revision: Better groupings for 'a' values
+
+
 # Uncomment or comment this out
 #!pip install qiskit qiskit-aer-gpu-cu11 pylatexenc colorama --upgrade
 from colorama import Fore, Style, init
