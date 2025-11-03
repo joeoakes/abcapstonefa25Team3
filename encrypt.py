@@ -7,19 +7,41 @@
 import argparse, json, sys, os
 
 def read_public_key(path="public_key.txt"):
+    """Accepts either format:
+       A) Two-line:
+          n=1333
+          e=143
+       B) Tuple:
+          (143, 1333)   # (e, n)
+    """
+    import os, re
     if not os.path.exists(path):
         raise FileNotFoundError(f"{path} not found. pass --n and --e instead.")
-    n = e = None
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
+
+    txt = open(path, "r", encoding="utf-8").read().strip()
+
+    # Format A: two lines n=/e=
+    if "n=" in txt and "e=" in txt:
+        n = e = None
+        for line in txt.splitlines():
             s = line.strip()
             if s.startswith("n="):
                 n = int(s.split("=", 1)[1].strip())
             elif s.startswith("e="):
                 e = int(s.split("=", 1)[1].strip())
-    if n is None or e is None:
-        raise ValueError("public_key.txt must have lines like: n=... and e=...")
-    return n, e
+        if n is None or e is None:
+            raise ValueError("public_key.txt must have lines like n=... and e=...")
+        return n, e
+
+    # Format B: tuple (e, n)
+    m = re.search(r"\(\s*(\d+)\s*,\s*(\d+)\s*\)", txt)
+    if m:
+        e = int(m.group(1))
+        n = int(m.group(2))
+        return n, e
+
+    raise ValueError("public_key.txt must be either 'n=...\\ne=...' or '(e, n)'.")
+
 
 def encrypt_bytes(bdata, e, n):
     # WARNING: this is just a class demo (no padding etc.)
