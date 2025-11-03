@@ -44,7 +44,15 @@ def factor_n(n, engine="auto"):
             return classical_factor(n)
         except Exception as e:
             print(f"[warn] classical failed: {e}")
-    raise RuntimeError("could not factor n with available engines")
+
+    # last resort: naive factor (works for small classroom n like 1333)
+    print("[info] using naive fallback factor...")
+    from math import isqrt
+    for i in range(2, isqrt(n) + 1):
+        if n % i == 0:
+            return i, n // i
+    raise RuntimeError("could not factor n")
+
 
 def get_private_key(n, e, engine="auto"):
     p, q = factor_n(n, engine)
