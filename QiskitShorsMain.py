@@ -461,21 +461,19 @@ def shor_factor_anyN(N: int,
 
   
 def factor_N(N, n_count=10, shots=8024, work_prep="one", a_trials=10, visualize=False):
-    """
-    Import-friendly wrapper.
-    Call from other Python files:  from shor_file import factor_N
-                                   p_q = factor_N(143)
-    Returns (p, q) on success, or None.
-    """
-    return shor_factor_anyN(
-        N=N,
-        n_count=n_count,
-        shots=shots,
-        work_prep=work_prep,
-        a_trials=a_trials,
-        verbose=True,
-        visualize=visualize
-    )
+
+    # PUT FIXES FOR UNIT TESTING HERE
+    if(N > 2 and isinstance(N,int)):
+        return shor_factor_anyN(
+            N=N,
+            n_count=n_count,
+            shots=shots,
+            work_prep=work_prep,
+            a_trials=a_trials,
+            verbose=True,
+            visualize=visualize
+        )
+    return None
 
 if __name__ == "__main__":
     # You can change N, the number of counting qubits, the number of shots, and the initial work register preparation here.
