@@ -5,3 +5,9 @@ itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 Werkzeug==3.1.3
+colorama
+IPython
+Qiskit
+Qiskit-Aer-GPU-CU11
+matplotlib
+numpy
