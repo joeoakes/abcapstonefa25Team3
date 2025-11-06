@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from ClassicalShors import run_multiple
 from RSAKeyGen import generate_rsa_keys   # correct import
+from QiskitShorsMain import factor_N # Takes value N
 import io
 import sys
 
