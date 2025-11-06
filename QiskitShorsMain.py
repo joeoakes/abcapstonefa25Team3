@@ -3,8 +3,8 @@
 # Course: 488 CMPSC
 # Author: Sam Axler
 # Date Developed: 
-# Last Date Changed: 11/1
-# Revision: Better groupings for 'a' values
+# Last Date Changed: 11/6
+# Revision: Prepare this module for GUI Implementation
 
 
 # Uncomment or comment this out
