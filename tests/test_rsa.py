@@ -3,7 +3,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from encrypt import encrypt_bytes, read_public_key
+# project code is packaged under src/, import from there
+from src.crypto.encrypt import encrypt_bytes, read_public_key
 
 class TestRSA(unittest.TestCase):
     def setUp(self):
@@ -14,13 +15,14 @@ class TestRSA(unittest.TestCase):
     def test_public_key_reading(self):
         """Test reading public key from file"""
         try:
-            n, e = read_public_key("public_key.txt")
+            key_path = os.path.join("data", "keys", "public_key.txt")
+            n, e = read_public_key(key_path)
             self.assertIsInstance(n, int)
             self.assertIsInstance(e, int)
             self.assertTrue(n > 0)
             self.assertTrue(e > 0)
         except FileNotFoundError:
-            self.skipTest("public_key.txt not found")
+            self.skipTest("public_key.txt not found in data/keys")
 
 if __name__ == '__main__':
     unittest.main()
