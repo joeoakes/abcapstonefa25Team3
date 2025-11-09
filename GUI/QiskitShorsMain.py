@@ -3,8 +3,8 @@
 # Course: 488 CMPSC
 # Author: Sam Axler
 # Date Developed: 
-# Last Date Changed: 11/6
-# Revision: Prepare this module for GUI Implementation
+# Last Date Changed: 11/9
+# Revision: Added more edge cases to ensure validation, and added CUDA core checking.
 
 
 # Uncomment or comment this out
@@ -337,6 +337,8 @@ def shor_factor_anyN(N: int,
 
     # Build the simulator. Try to use the graphics processing unit. Fall back to the central processor.
     backend = AerSimulator(method="statevector")
+    gpu_enabled = False
+
     try:
         backend.set_options(
             device="GPU",
@@ -345,10 +347,41 @@ def shor_factor_anyN(N: int,
             max_parallel_threads=4,
             max_parallel_experiments=2
         )
+        gpu_enabled = True
         if verbose:
-            Log("[Backend] GPU statevector + fusion (single precision).")
-    except Exception:
-        Log("[Backend] CPU fallback.")
+            Log(f"{GREEN}[Backend]{RESET} GPU statevector + fusion (single precision).")
+    except Exception as e:
+        Log(f"{RED}[Backend Warning]{RESET} GPU initialization failed: {e}")
+        Log(f"{YELLOW}[Backend]{RESET} CPU fallback.")
+        backend.set_options(device="CPU")
+
+    # CUDA Validation Block
+    try:
+        Log(f"{CYAN}[CUDA Validation]{RESET} Checking GPU availability via CuPy...")
+        import cupy as cp
+        try:
+            num_devices = cp.cuda.runtime.getDeviceCount()
+            if num_devices > 0:
+                device_name = cp.cuda.runtime.getDeviceProperties(0)['name'].decode('utf-8')
+                Log(f"{GREEN}[CUDA Detected]{RESET} {num_devices} device(s) available! Using: {device_name}")
+                gpu_enabled = True
+            else:
+                Log(f"{RED}[CUDA Missing]{RESET} No CUDA devices detected.")
+                gpu_enabled = False
+        except cp.cuda.runtime.CUDARuntimeError as e:
+            Log(f"{RED}[CUDA Error]{RESET} CUDA runtime issue: {e}")
+            gpu_enabled = False
+    except ImportError:
+        Log(f"{RED}[CUDA Validation Skipped]{RESET} CuPy not installed or unavailable in this environment.")
+        gpu_enabled = False
+    except Exception as e:
+        Log(f"{RED}[CUDA Validation Failed]{RESET} Unexpected error: {e}")
+        gpu_enabled = False
+
+    if not gpu_enabled:
+        Log(f"{YELLOW}[Backend]{RESET} GPU unavailable or failed validation. Running on CPU only.")
+    else:
+        Log(f"{GREEN}[Backend Validation]{RESET} GPU confirmed active and CUDA-ready.\n")
 
     # Choose candidate a values
     primes = pick_diverse_a_values(N, a_trials=a_trials, seed=7)
@@ -463,8 +496,24 @@ def shor_factor_anyN(N: int,
 def factor_N(N, n_count=10, shots=8024, work_prep="one", a_trials=10, visualize=False):
 
     # PUT FIXES FOR UNIT TESTING HERE
-    if(N > 2 and isinstance(N,int)):
-        return shor_factor_anyN(
+    try:
+        # Type and range validation
+        if not isinstance(N, int):
+            Log(f"{RED}[Input Error]{RESET} N must be an integer. Got type {type(N)}")
+            return None
+        if N < 4:
+            Log(f"{RED}[Input Error]{RESET} N={N} too small to factor (must be composite > 3).")
+            return None
+        if N % 2 == 0:
+            Log(f"{YELLOW}[Trivial Factorization]{RESET} Even number detected. Returning 2 × {N//2}.")
+            return (2, N // 2)
+        if N > 437:
+          Log(f"{RED}[Input Error]{RESET} N={N} Is far too large to compute reasonably with Quantum Shors.")
+          return None
+        Log(f"{CYAN}[Input Validation]{RESET} N={N} passed initial screening. Proceeding with Shor’s Algorithm.")
+
+        # Run main factoring
+        result = shor_factor_anyN(
             N=N,
             n_count=n_count,
             shots=shots,
@@ -473,7 +522,16 @@ def factor_N(N, n_count=10, shots=8024, work_prep="one", a_trials=10, visualize=
             verbose=True,
             visualize=visualize
         )
-    return None
+
+        if result:
+            Log(f"{GREEN}[factor_N Result]{RESET} Success: N={N} factored into {result[0]} × {result[1]}")
+        else:
+            Log(f"{YELLOW}[factor_N Warning]{RESET} Shor’s algorithm failed to find nontrivial factors for N={N}")
+        return result
+
+    except Exception as e:
+        Log(f"{RED}[Critical Error in factor_N]{RESET} {e}")
+        return None
 
 if __name__ == "__main__":
     # You can change N, the number of counting qubits, the number of shots, and the initial work register preparation here.
