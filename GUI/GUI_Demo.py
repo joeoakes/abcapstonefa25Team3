@@ -71,7 +71,7 @@ def home():
                     try:
                         buffer = io.StringIO()
                         sys.stdout = buffer
-                        factor_N(N=N_value)
+                        factor_N(N=int(N_value))
                         sys.stdout = sys.__stdout__
                         output = buffer.getvalue()
                     except Exception as e:
