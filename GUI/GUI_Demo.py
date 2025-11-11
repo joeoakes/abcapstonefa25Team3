@@ -59,16 +59,23 @@ def home():
         elif action == 'run_quantum':
             try:
                 if use_rsa_n and last_rsa_n:
-                    output = (
-                        f"Simulating quantum Shor factoring using Qiskit Aer...\n"
-                        f"Using stored RSA N value: {last_rsa_n}\n"
-                        f"Result: Example factoring of N={last_rsa_n} → 3 × 7"
-                    )
+                    try:
+                        buffer = io.StringIO()
+                        sys.stdout = buffer
+                        factor_N(N=15)
+                        sys.stdout = sys.__stdout__
+                        output = buffer.getvalue()
+                    except Exception as e:
+                        output = f" Error running Quantum Shor’s algorithm: {str(e)}"
                 elif N_value:
-                    output = (
-                        f"Simulating quantum Shor factoring for N={N_value}...\n"
-                        f"Result: Example factoring of N={N_value} → 3 × 7"
-                    )
+                    try:
+                        buffer = io.StringIO()
+                        sys.stdout = buffer
+                        factor_N(N=N_value)
+                        sys.stdout = sys.__stdout__
+                        output = buffer.getvalue()
+                    except Exception as e:
+                        output = f" Error running Quantum Shor’s algorithm: {str(e)}"
                 else:
                     output = "Simulating quantum Shor factoring...\nResult: 21 → 3 × 7"
             except Exception as e:
