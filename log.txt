@@ -1,0 +1,50 @@
+[2025-11-11 09:53:10] [Input Error] N must be an integer. Got type <class 'str'>
+[2025-11-11 09:53:16] [Input Error] N must be an integer. Got type <class 'str'>
+[2025-11-11 09:53:21] [Input Error] N must be an integer. Got type <class 'str'>
+[2025-11-11 09:53:28] [Input Error] N must be an integer. Got type <class 'str'>
+[2025-11-11 09:54:12] [Input Validation] N=15 passed initial screening. Proceeding with Shor’s Algorithm.
+[2025-11-11 09:54:12] [Backend] GPU statevector + fusion (single precision).
+[2025-11-11 09:54:12] [CUDA Validation] Checking GPU availability via CuPy...
+[2025-11-11 09:54:12] [CUDA Validation Skipped] CuPy not installed or unavailable in this environment.
+[2025-11-11 09:54:12] [Backend] GPU unavailable or failed validation. Running on CPU only.
+[2025-11-11 09:54:12] [Setup] Selected diversified a values: [7, 11, 13]
+[2025-11-11 09:54:12] [Setup] N=15, n_count=10, work_qubits=4
+[2025-11-11 09:54:12] [Setup] Trying 3 a values (prime, odd, coprime): [7, 11, 13]
+[2025-11-11 09:54:12] 
+
+
+[Trial 1/3] a=7
+[2025-11-11 09:54:12] [Work Register Prepared] time=0.000s
+[2025-11-11 09:54:12] [Count Register Superposition] time=0.000s
+[2025-11-11 09:54:12] [Built Controlled-U] a=7, N=15, time=0.002s
+[2025-11-11 09:54:12] [Built Controlled-U] a=4, N=15, time=0.000s
+[2025-11-11 09:54:12] [Controlled Multiplications Done] time=0.004s
+[2025-11-11 09:54:12] [Inverse QFT Complete] on 10 qubits, time=0.000s
+[2025-11-11 09:54:12] [Measurement Added] time=0.000s
+[2025-11-11 09:54:12] [QPE Circuit Built] total build time=0.008s
+
+[2025-11-11 09:54:12] [Circuit Flattened] time=0.000s
+[2025-11-11 09:54:12] [Critical Error in factor_N] Simulation device "GPU" is not supported on this system
+[2025-11-11 09:54:20] [Input Validation] N=15 passed initial screening. Proceeding with Shor’s Algorithm.
+[2025-11-11 09:54:20] [Backend] GPU statevector + fusion (single precision).
+[2025-11-11 09:54:20] [CUDA Validation] Checking GPU availability via CuPy...
+[2025-11-11 09:54:20] [CUDA Validation Skipped] CuPy not installed or unavailable in this environment.
+[2025-11-11 09:54:20] [Backend] GPU unavailable or failed validation. Running on CPU only.
+[2025-11-11 09:54:20] [Setup] Selected diversified a values: [7, 11, 13]
+[2025-11-11 09:54:20] [Setup] N=15, n_count=10, work_qubits=4
+[2025-11-11 09:54:20] [Setup] Trying 3 a values (prime, odd, coprime): [7, 11, 13]
+[2025-11-11 09:54:20] 
+
+
+[Trial 1/3] a=7
+[2025-11-11 09:54:20] [Work Register Prepared] time=0.000s
+[2025-11-11 09:54:20] [Count Register Superposition] time=0.000s
+[2025-11-11 09:54:20] [Built Controlled-U] a=7, N=15, time=0.000s
+[2025-11-11 09:54:20] [Built Controlled-U] a=4, N=15, time=0.000s
+[2025-11-11 09:54:20] [Controlled Multiplications Done] time=0.002s
+[2025-11-11 09:54:20] [Inverse QFT Complete] on 10 qubits, time=0.000s
+[2025-11-11 09:54:20] [Measurement Added] time=0.000s
+[2025-11-11 09:54:20] [QPE Circuit Built] total build time=0.005s
+
+[2025-11-11 09:54:20] [Circuit Flattened] time=0.000s
+[2025-11-11 09:54:20] [Critical Error in factor_N] Simulation device "GPU" is not supported on this system
