@@ -98,7 +98,11 @@ Run performance measurements (example):
 ```powershell
 python "Performance Measurements.py" --Ns 15 21 33 --shots 4096 --repeat 5
 ```
+Run tests:
 
+```powershell
+python -m tests.run_tests
+```
 ---
 
 ##  Educational Objective

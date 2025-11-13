@@ -2,11 +2,11 @@ import unittest
 import sys
 import os
 
-
+# Ensure project root is in path
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PROJECT_ROOT)
 
-#Changed the import pathing because our /src/crpyto/encrypt.py
+# Correct import path (project uses src/crypto/encrypt.py)
 from src.crypto.encrypt import encrypt_bytes, read_public_key
 
 
@@ -29,6 +29,7 @@ class TestRSA(unittest.TestCase):
         except Exception as exc:
             self.fail(f"Failed to read public key file: {exc}")
 
+        # Validate types and values
         self.assertIsInstance(n, int)
         self.assertIsInstance(e, int)
         self.assertGreater(n, 0)

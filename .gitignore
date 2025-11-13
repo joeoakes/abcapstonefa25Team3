@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+GUI/private_key.txt
+GUI/public_key.txt
+GUI/results.db
+*.db
+*.sqlite*

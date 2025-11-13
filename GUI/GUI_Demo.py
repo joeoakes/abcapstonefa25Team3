@@ -1,8 +1,13 @@
 from flask import Flask, render_template, request
 from ClassicalShors import run_multiple
 from RSAKeyGen import generate_rsa_keys   # correct import
+from QiskitShorsMain import factor_N # Takes value N
 import io
 import sys
+from pathlib import Path
+import re
+from flask import jsonify
+
 
 app = Flask(__name__)
 
@@ -54,16 +59,23 @@ def home():
         elif action == 'run_quantum':
             try:
                 if use_rsa_n and last_rsa_n:
-                    output = (
-                        f"Simulating quantum Shor factoring using Qiskit Aer...\n"
-                        f"Using stored RSA N value: {last_rsa_n}\n"
-                        f"Result: Example factoring of N={last_rsa_n} → 3 × 7"
-                    )
+                    try:
+                        buffer = io.StringIO()
+                        sys.stdout = buffer
+                        factor_N(N=15)
+                        sys.stdout = sys.__stdout__
+                        output = buffer.getvalue()
+                    except Exception as e:
+                        output = f" Error running Quantum Shor’s algorithm: {str(e)}"
                 elif N_value:
-                    output = (
-                        f"Simulating quantum Shor factoring for N={N_value}...\n"
-                        f"Result: Example factoring of N={N_value} → 3 × 7"
-                    )
+                    try:
+                        buffer = io.StringIO()
+                        sys.stdout = buffer
+                        factor_N(N=int(N_value))
+                        sys.stdout = sys.__stdout__
+                        output = buffer.getvalue()
+                    except Exception as e:
+                        output = f" Error running Quantum Shor’s algorithm: {str(e)}"
                 else:
                     output = "Simulating quantum Shor factoring...\nResult: 21 → 3 × 7"
             except Exception as e:
@@ -80,6 +92,46 @@ def home():
 
     return render_template("index.html", output=output, action=action)
 
+def _find_shor_log():
+    here = Path(__file__).parent
+    cand1 = here / "shor_database.txt"
+    if cand1.exists():
+        return cand1
+    cand2 = here.parent / "shor_database.txt"
+    if cand2.exists():
+        return cand2
+    return None
+
+def _parse_shor_log(p: Path):
+    rows = []
+    pat = re.compile(r"N=(\d+),\s*p=(\d+),\s*q=(\d+),\s*a=(\d+),\s*r=(\w+)")
+    for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
+        m = pat.search(line)
+        if not m:
+            continue
+        N, p_, q, a, r = m.groups()
+        rows.append({
+            "N": int(N),
+            "p": int(p_),
+            "q": int(q),
+            "a": int(a),
+            "r": (None if r == "None" else int(r))
+        })
+    return rows
+
+@app.route("/history")
+def history():
+    log_path = _find_shor_log()
+    if not log_path:
+        return jsonify({"error": "shor_database.txt not found"}), 404
+    data = _parse_shor_log(log_path)
+    if not data:
+        return "<h3>No parsed entries found in shor_database.txt</h3>"
+    html = ["<h2>Shor run history</h2><table border='1' cellpadding='6'><tr><th>N</th><th>p</th><th>q</th><th>a</th><th>r</th></tr>"]
+    for row in data[:200]:
+        html.append(f"<tr><td>{row['N']}</td><td>{row['p']}</td><td>{row['q']}</td><td>{row['a']}</td><td>{row['r']}</td></tr>")
+    html.append("</table>")
+    return "\n".join(html)
 
 if __name__ == '__main__':
     app.run(debug=True)

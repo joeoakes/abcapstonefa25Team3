@@ -11,7 +11,7 @@
 
 import argparse, json, os, sys
 from math import gcd
-from shors_adapter import classical_factor, quantum_factor
+from src.quantum.adapters import classical_factor, quantum_factor
 
 def egcd(a, b):
     if b == 0:
