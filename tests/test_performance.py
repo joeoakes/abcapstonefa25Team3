@@ -9,8 +9,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # ---------------- Project Imports ----------------
 from src.crypto.encrypt import encrypt_bytes, read_public_key
 from src.crypto.decrypt import decrypt_bytes
-from src.crypto.keygen import generate_rsa_keys
-from src.crypto.shor_classical import classical_shor   # <-- your factoring function
+from GUI.RSAKeyGen import generate_rsa_keys
+from GUI.ClassicalShors import classical_shor   # <-- your factoring function
 
 # ============================================================
 # PERFORMANCE TEST SUITE
