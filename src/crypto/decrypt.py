@@ -13,6 +13,7 @@ import argparse, json, os, sys
 from math import gcd
 from src.quantum.adapters import classical_factor, quantum_factor
 
+
 def egcd(a, b):
     if b == 0:
         return (a, 1, 0)
@@ -65,6 +66,16 @@ def get_private_key(n, e, engine="auto"):
         raise ValueError("e must be coprime with phi(n)")
     d = modinv(e, phi)
     return p, q, d
+
+def get_pk_from_pq(p,q,e):
+    if(p == None or q == None or p + q <= 0):
+        return None
+    phi = (p - 1) * (q - 1)
+    if gcd(e, phi) != 1:
+        raise ValueError("e must be coprime with phi(n)")
+    d = modinv(e, phi)
+    return d
+
 
 def load_json(arg):
     # if arg is a path: open it; if not: treat it as json string; else read stdin
