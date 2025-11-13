@@ -14,6 +14,9 @@ from GUI.QiskitShorsMain import (
     c_mult_mod_N
 )
 
+from src.crypto.encrypt import encrypt_bytes, read_public_key
+from src.crypto.decrypt import decrypt_bytes, get_pk_from_pq
+
 
 class TestShorNonQuantum(unittest.TestCase):
 
@@ -103,6 +106,62 @@ class TestShorNonQuantum(unittest.TestCase):
 
         trial = try_factor_from_order(10, 6, N)
         self.assertTrue(trial is None or isinstance(trial, tuple))
+
+
+class PipelineTest(unittest.TestCase):
+
+    def test_get_private_key_flow_expect_result(self):
+        # Test that the decrypt function works with the quantum shors output, which is either (p,q) or None
+        # without running the quantum factoring engine
+        print("Running Crypto Test: deriving private key via factor_N")
+
+        testoutput = (43,59)
+        p = testoutput[0]
+        q = testoutput[1]
+        n = p * q
+        e = 17
+
+        # Patch factor_n so this test does not call quantum code
+        def fake_factor(nval, engine="auto"):
+            return (p, q)
+
+        original_factor_n = globals().get("factor_n")
+        globals()["factor_n"] = fake_factor
+
+        d = get_pk_from_pq(p,q,e)
+        print(d)
+
+        self.assertTrue(isinstance(d, int))
+
+        # Restore original factoring function
+        globals()["factor_n"] = original_factor_n
+
+    def test_get_private_key_flow_expect_failure(self):
+        # Test that the decrypt function works with the quantum shors output, which is either (p,q) or None
+        # without running the quantum factoring engine
+        print("Running Crypto Test: deriving private key via factor_N")
+
+        testoutput = None
+        p = None
+        q = None
+        n = None
+        e = 17
+
+        # Patch factor_n so this test does not call quantum code
+        def fake_factor(nval, engine="auto"):
+            return (p, q)
+
+        original_factor_n = globals().get("factor_n")
+        globals()["factor_n"] = fake_factor
+
+        d = get_pk_from_pq(p,q,e)
+        print(d)
+
+        self.assertFalse(isinstance(d, int))
+
+        # Restore original factoring function
+        globals()["factor_n"] = original_factor_n
+
 
 
 if __name__ == "__main__":
