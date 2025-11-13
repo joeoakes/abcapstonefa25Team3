@@ -1,0 +1,40 @@
+[2025-11-13 09:11:34] [Backend] GPU statevector + fusion (single precision).
+[2025-11-13 09:11:34] [Setup] Selected diversified a values: [3, 5, 7, 9, 29, 49, 69, 87, 107, 127]
+[2025-11-13 09:11:34] [Setup] N=143, n_count=10, work_qubits=8
+[2025-11-13 09:11:34] [Setup] Trying 10 a values (prime, odd, coprime): [3, 5, 7, 9, 29, 49, 69, 87, 107, 127]
+[2025-11-13 09:11:34] 
+
+
+[Trial 1/10] a=3
+[2025-11-13 09:11:34] [Work Register Prepared] time=0.000s
+[2025-11-13 09:11:34] [Count Register Superposition] time=0.000s
+[2025-11-13 09:11:34] [Built Controlled-U] a=3, N=143, time=0.036s
+[2025-11-13 09:11:34] [Built Controlled-U] a=9, N=143, time=0.023s
+[2025-11-13 09:11:34] [Built Controlled-U] a=81, N=143, time=0.036s
+[2025-11-13 09:11:34] [Built Controlled-U] a=126, N=143, time=0.021s
+[2025-11-13 09:11:34] [Controlled Multiplications Done] time=0.215s
+[2025-11-13 09:11:34] [Inverse QFT Complete] on 10 qubits, time=0.000s
+[2025-11-13 09:11:34] [Measurement Added] time=0.000s
+[2025-11-13 09:11:34] [QPE Circuit Built] total build time=0.224s
+
+[2025-11-13 09:11:34] [Circuit Flattened] time=0.000s
+[2025-11-13 09:15:17] [Backend] GPU statevector + fusion (single precision).
+[2025-11-13 09:15:17] [Setup] Selected diversified a values: [3, 5, 7, 9, 29, 49, 69, 87, 107, 127]
+[2025-11-13 09:15:17] [Setup] N=143, n_count=10, work_qubits=8
+[2025-11-13 09:15:17] [Setup] Trying 10 a values (prime, odd, coprime): [3, 5, 7, 9, 29, 49, 69, 87, 107, 127]
+[2025-11-13 09:15:17] 
+
+
+[Trial 1/10] a=3
+[2025-11-13 09:15:17] [Work Register Prepared] time=0.000s
+[2025-11-13 09:15:17] [Count Register Superposition] time=0.000s
+[2025-11-13 09:15:17] [Built Controlled-U] a=3, N=143, time=0.035s
+[2025-11-13 09:15:18] [Built Controlled-U] a=9, N=143, time=0.034s
+[2025-11-13 09:15:18] [Built Controlled-U] a=81, N=143, time=0.022s
+[2025-11-13 09:15:18] [Built Controlled-U] a=126, N=143, time=0.035s
+[2025-11-13 09:15:18] [Controlled Multiplications Done] time=0.248s
+[2025-11-13 09:15:18] [Inverse QFT Complete] on 10 qubits, time=0.000s
+[2025-11-13 09:15:18] [Measurement Added] time=0.000s
+[2025-11-13 09:15:18] [QPE Circuit Built] total build time=0.278s
+
+[2025-11-13 09:15:18] [Circuit Flattened] time=0.000s
