@@ -22,22 +22,27 @@ def check_database(N, filename="shor_database.txt"):
 
 def log_to_database(N, p, q, a, r, filename="shor_database.txt"):
     """
-    Appends a new result to the text file only if it's not already present.
+    Append a new result to the database file,
+    skipping N if it already exists.
     """
-    # Create header if file doesn’t exist yet
+    # Create header if file does not exist
     if not os.path.exists(filename):
         with open(filename, "w") as f:
             f.write("N | p | q | a | r\n")
-            f.write("-----------------------------------\n")
+            f.write("-" * 35 + "\n")
 
-    # Avoid duplicates
-    if check_database(N, filename):
-        print(f"[Database] N={N} already recorded. Skipping log entry.")
-        return
+    # Load file & check duplicates
+    with open(filename, "r") as f:
+        contents = f.read()
+        if f"N={N}" in contents:
+            print(f"[Database] N={N} already exists. Skipping.")
+            return
 
+    # Append new entry
     with open(filename, "a") as f:
         f.write(f"N={N}, p={p}, q={q}, a={a}, r={r}\n")
-    print(f"[Database] Logged new entry for N={N}: p={p}, q={q}, a={a}, r={r}")
+
+    print(f"[Database] Appended → N={N}, p={p}, q={q}, a={a}, r={r}")
 
 
 # Prime number helper functions
@@ -117,23 +122,6 @@ def classical_shor(N):
 
 # Database writer
 
-def log_to_database(N, p, q, a, r, filename="shor_database.txt"):
-    """Write results to a text file, skipping duplicates."""
-    try:
-        # Check for duplicates
-        with open(filename, "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                if f"N={N}" in line:
-                    return  # Already recorded
-    except FileNotFoundError:
-        # Create file if it doesn't exist
-        with open(filename, "w") as f:
-            f.write("N | p | q | a | r\n")
-            f.write("-" * 35 + "\n")
-
-    with open(filename, "a") as f:
-        f.write(f"N={N}, p={p}, q={q}, a={a}, r={r}\n")
 
 
 # Main Execution
