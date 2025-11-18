@@ -11,16 +11,17 @@ def _load_classical_module():
     root = Path(__file__).resolve().parents[1]
 
     candidate_paths = [
-        root / "src" / "ClassicalShors.py",
-        root / "src" / "ShorNonQuantum.py",
-        root / "src" / "classical_shor.py",
+         root / "GUI" / "ClassicalShors.py",      
+    root / "src" / "ClassicalShors.py",      
+    root / "src" / "ShorNonQuantum.py",
+    root / "src" / "classical_shor.py",
     ]
 
     for p in candidate_paths:
         if p.exists():
             spec = importlib.util.spec_from_file_location(p.stem, p)
             mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)  # type: ignore
+            spec.loader.exec_module(mod)  
             return mod
 
     raise AssertionError(
@@ -66,7 +67,7 @@ def _norm_result(n, out):
         a, b = int(a), int(b)
         assert a * b == n, f"Returned pair does not multiply to {n}"
         return tuple(sorted((a, b)))
-    # assume single non-trivial factor
+    
     f = int(out)
     assert 1 < f < n and n % f == 0, f"{f} is not a non-trivial factor of {n}"
     return tuple(sorted((f, n // f)))
@@ -97,7 +98,7 @@ class TestClassicalShor(unittest.TestCase):
                     self.assertIn(out, (None, False, ()),
                                   "Prime should not yield non-trivial factors")
                 except (ValueError, RuntimeError):
-                    # Also acceptable: raising a clean error
+                    
                     pass
 
     def test_even_composites_allowed(self):
@@ -108,12 +109,11 @@ class TestClassicalShor(unittest.TestCase):
                 try:
                     out = FACT(n)
                     if out is None:
-                        # Some impls only handle odd semiprimes; that's fine.
+                        
                         continue
                     _ = _norm_result(n, out)
                 except Exception:
-                    # If your implementation doesn't support these, that's OK –
-                    # this prevents the test suite from crashing.
+                    
                     continue
 
 
