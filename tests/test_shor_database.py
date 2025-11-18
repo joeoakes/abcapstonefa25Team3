@@ -1,6 +1,7 @@
 import unittest
 import os
-from src.shor_db import append_shor_record
+from src.database.shor_db import append_shor_record
+
 
 class TestShorDatabase(unittest.TestCase):
     def setUp(self):
