@@ -69,7 +69,7 @@ def generate_prime(min_val=5, max_val=50):
 def find_period_classical(a, N):
     """Find smallest r > 0 such that a^r ≡ 1 (mod N)."""
     if gcd(a, N) != 1:
-        return None
+        return -1
 
     r = 1
     value = pow(a, r, N)
@@ -77,7 +77,7 @@ def find_period_classical(a, N):
         r += 1
         value = pow(a, r, N)
         if r > N:
-            return None
+            return -1
     return r
 
 # --- Step 2: Attempt to Factor Using Shor’s Idea ---
@@ -88,7 +88,7 @@ def classical_shor(N):
     """
     # Check for trivial cases first
     if N % 2 == 0:
-        return 2, N // 2, N, None, None
+        return 2, N // 2, N, -1, -1
 
     # Try several random 'a' values
     for attempt in range(5):
@@ -98,13 +98,14 @@ def classical_shor(N):
         g = gcd(a, N)
         if g > 1:
             # Lucky guess — already found a factor
-            return g, N // g, N, a, None
+            r = find_period_classical(a, N)
+            return g, N // g, N, a, r
 
         # Find period r using classical method
         r = find_period_classical(a, N)
         print(f"  Found r = {r}")
 
-        if r is None or r % 2 != 0:
+        if r % 2 != 0 and r != None:
             continue
 
         # Compute possible factors

@@ -11,8 +11,12 @@ from GUI.ClassicalShors import classical_shor, log_to_database
 class TestIntegrationShorMultiple(unittest.TestCase):
 
     def run_case(self, N, expected_p, expected_q):
+        print("New test")
         """Helper that runs Shor for a single N."""
         p, q, N_val, a, r = classical_shor(N)
+        print(f"\nN: : {N}")
+        print(f"\nP and Q: {p},{q}")
+        print(f"\nR value: {r}")
 
         # Basic correctness checks
         self.assertEqual(N_val, N)
@@ -23,7 +27,7 @@ class TestIntegrationShorMultiple(unittest.TestCase):
         log_to_database(N, p, q, a, r)
 
         # Verify database file contains the correct entry
-        db_path = os.path.join(PROJECT_ROOT, "shor_database.txt")
+        db_path = "shor_database.txt"
         with open(db_path, "r") as f:
             contents = f.read()
             self.assertIn(f"N={N}", contents)

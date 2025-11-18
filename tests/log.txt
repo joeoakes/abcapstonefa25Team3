@@ -1,0 +1,8 @@
+[2025-11-17 17:48:18] [Order Check] r=-3 is invalid. Skipping.
+[2025-11-17 17:48:18] [GCD Test] a=2, r=4, x=4, gcd(x-1,N)=3, gcd(x+1,N)=5
+[2025-11-17 17:48:18] P was nontrivial!
+[2025-11-17 17:48:18] [Setup] Selected diversified a values: [3, 7, 13, 27, 41, 53]
+[2025-11-17 17:48:18] [Built Controlled-U] a=3, N=7, time=0.000s
+[2025-11-17 17:48:18] [Setup] Selected diversified a values: [3, 5, 7, 9, 461, 913, 1365, 1817, 2269, 2721, 3173, 3625, 4077, 4529, 4981, 5433, 5885, 6337, 6789, 7241, 7693, 8597, 9049, 9501, 9953]
+[2025-11-17 17:48:18] [Setup] Selected diversified a values: [3, 5, 9, 11, 53]
+[2025-11-17 17:48:18] [Trivial Result] a^(3) mod 91 = 90. No useful factors.
