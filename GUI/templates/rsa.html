@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RSA Module — QuantumX</title>
+<style>
+:root {
+    --bg-main-dark: linear-gradient(120deg, #0f172a, #1e293b);
+    --bg-main-light: #e5e7eb;
+    --card-dark: #020617;
+    --card-light: #ffffff;
+    --text-dark: #e5e7eb;
+    --text-light: #020617;
+    --muted-dark: #9ca3af;
+    --muted-light: #4b5563;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    transition: background 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+    background: var(--bg-main-dark);
+    color: var(--text-dark);
+}
+
+body.light-mode {
+    background: var(--bg-main-light);
+    color: var(--text-light);
+}
+
+nav {
+    background: #020617;
+    color: #e5e7eb;
+    padding: 14px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+body.light-mode nav {
+    background: #111827;
+}
+
+nav h1 {
+    margin: 0;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+}
+
+.nav-link {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.nav-link:hover {
+    color: #ffffff;
+}
+
+.theme-toggle {
+    border: 1px solid #4b5563;
+    background: transparent;
+    color: #e5e7eb;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.page {
+    max-width: 880px;
+    margin: 28px auto 40px;
+    padding: 0 18px;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+.card {
+    background: var(--card-dark);
+    border-radius: 16px;
+    padding: 24px 26px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    border: 1px solid rgba(148,163,184,0.3);
+}
+
+body.light-mode .card {
+    background: var(--card-light);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+h2, h3 {
+    margin-top: 0;
+}
+
+p {
+    font-size: 14px;
+    color: var(--muted-dark);
+}
+
+body.light-mode p {
+    color: var(--muted-light);
+}
+
+.settings-section {
+    margin-top: 14px;
+    margin-bottom: 14px;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(148,163,184,0.3);
+}
+
+body.light-mode .settings-section {
+    background: rgba(0,0,0,0.03);
+}
+
+.settings-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+}
+
+.settings-row label {
+    font-size: 14px;
+}
+
+.settings-row input {
+    width: 90px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #4b5563;
+    background: #020617;
+    color: #e5e7eb;
+}
+
+body.light-mode .settings-row input {
+    background: #ffffff;
+    color: #020617;
+    border-color: #9ca3af;
+}
+
+button {
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    background: #4f46e5;
+    color: white;
+}
+
+button:hover {
+    background: #6366f1;
+}
+
+.output-controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-secondary {
+    background: #0f766e;
+}
+
+.btn-secondary:hover {
+    background: #0d9488;
+}
+
+pre {
+    background: #020617;
+    color: #a7f3d0;
+    padding: 12px;
+    border-radius: 10px;
+    white-space: pre-wrap;
+    font-size: 13px;
+    margin-top: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid rgba(148,163,184,0.4);
+}
+
+body.light-mode pre {
+    background: #111827;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+
+<body class="dark-mode">
+
+<nav>
+    <h1> RSA Module</h1>
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}" class="nav-link">Dashboard</a>
+        <a href="{{ url_for('rsa_page') }}" class="nav-link">RSA</a>
+        <a href="{{ url_for('classical_page') }}" class="nav-link">Classical Shor</a>
+        <a href="{{ url_for('quantum_page') }}" class="nav-link">Quantum Shor</a>
+        <a href="{{ url_for('history') }}" class="nav-link">History</a>
+        <a href="{{ url_for('help_page') }}" class="nav-link">Help</a>
+        <a href="{{ url_for('quantum_qa') }}" class="nav-link">Q&amp;A</a>
+        <button class="theme-toggle" onclick="toggleTheme()" type="button">
+            <span id="theme-icon">🌙</span>
+            <span id="theme-label">Dark</span>
+        </button>
+    </div>
+</nav>
+
+<div class="page">
+    <div class="card">
+
+        <h2>Generate RSA Keys</h2>
+        <p>
+            Choose a range of prime values. The system will randomly select two
+            distinct primes <code>p</code> and <code>q</code> from this range and
+            compute the public/private keypair.
+        </p>
+
+        <form method="POST">
+            <div class="settings-section">
+                <h3>Prime Selection</h3>
+
+                <div class="settings-row">
+                    <label>Min Prime (p):</label>
+                    <input type="number" name="min_p" value="5" min="2" required>
+
+                    <label>Max Prime (q):</label>
+                    <input type="number" name="max_p" value="50" required>
+                </div>
+            </div>
+
+            <button type="submit">Generate RSA Keys</button>
+        </form>
+
+        {% if output %}
+            <div class="output-controls">
+                <button type="button" onclick="toggleOutput()">Show / Hide Output</button>
+                <button type="button" class="btn-secondary" onclick="downloadOutput()">Download Output</button>
+            </div>
+            <pre id="output-box">{{ output }}</pre>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+function applyTheme(theme) {
+    const body = document.body;
+    const icon = document.getElementById("theme-icon");
+    const label = document.getElementById("theme-label");
+
+    if (theme === "light") {
+        body.classList.remove("dark-mode");
+        body.classList.add("light-mode");
+        icon.textContent = "☀️";
+        label.textContent = "Light";
+    } else {
+        body.classList.remove("light-mode");
+        body.classList.add("dark-mode");
+        icon.textContent = "🌙";
+        label.textContent = "Dark";
+    }
+}
+
+function toggleTheme() {
+    const current = localStorage.getItem("theme") || "dark";
+    const next = current === "dark" ? "light" : "dark";
+    localStorage.setItem("theme", next);
+    applyTheme(next);
+}
+
+(function initTheme() {
+    const saved = localStorage.getItem("theme") || "dark";
+    applyTheme(saved);
+})();
+
+function toggleOutput() {
+    const box = document.getElementById("output-box");
+    if (!box) return;
+    box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+function downloadOutput() {
+    const box = document.getElementById("output-box");
+    if (!box) return;
+
+    const text = box.innerText;
+    const blob = new Blob([text], {type: "text/plain"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "rsa_output.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
