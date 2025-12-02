@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>QuantumX – Quantum Computing Q&amp;A</title>
+<style>
+    :root {
+        --bg-main-dark: linear-gradient(120deg, #0f172a, #1e293b);
+        --bg-main-light: #e5e7eb;
+        --card-dark: #020617;
+        --card-light: #ffffff;
+        --text-dark: #e5e7eb;
+        --text-light: #020617;
+        --muted-dark: #9ca3af;
+        --muted-light: #4b5563;
+    }
+
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark-mode {
+        background: var(--bg-main-dark);
+        color: var(--text-dark);
+    }
+
+    body.light-mode {
+        background: var(--bg-main-light);
+        color: var(--text-light);
+    }
+
+    nav {
+        background: #020617;
+        color: #e5e7eb;
+        padding: 14px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    body.light-mode nav {
+        background: #111827;
+    }
+
+    nav h1 {
+        margin: 0;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+    }
+
+    .nav-link {
+        color: #cbd5e1;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .nav-link:hover {
+        color: #ffffff;
+    }
+
+    .theme-toggle {
+        border: 1px solid #4b5563;
+        background: transparent;
+        color: #e5e7eb;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    body.light-mode .theme-toggle {
+        border-color: #6b7280;
+    }
+
+    .page {
+        max-width: 900px;
+        margin: 26px auto 40px;
+        padding: 0 18px 40px;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: fadeInUp 0.4s ease forwards;
+    }
+
+    .hero {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .hero h2 {
+        font-size: 32px;
+        margin-bottom: 6px;
+    }
+
+    .hero p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted-dark);
+    }
+
+    body.light-mode .hero p {
+        color: var(--muted-light);
+    }
+
+    .qa-card {
+        background: var(--card-dark);
+        border-radius: 16px;
+        padding: 20px 22px;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        border: 1px solid rgba(148,163,184,0.3);
+    }
+
+    body.light-mode .qa-card {
+        background: var(--card-light);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    }
+
+    .qa-question {
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .qa-answer {
+        font-size: 14px;
+        color: var(--muted-dark);
+        margin: 0;
+    }
+
+    body.light-mode .qa-answer {
+        color: var(--muted-light);
+    }
+
+    .pill {
+        display: inline-block;
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #1d4ed8;
+        color: #e5e7eb;
+        margin-left: 6px;
+    }
+
+    .back-row {
+        margin-top: 18px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        background: #4f46e5;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        text-decoration: none;
+    }
+
+    .btn:hover {
+        background: #6366f1;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body class="dark-mode">
+
+<nav>
+    <h1>QuantumX</h1>
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}" class="nav-link">Dashboard</a>
+        <a href="{{ url_for('rsa_page') }}" class="nav-link">RSA</a>
+        <a href="{{ url_for('classical_page') }}" class="nav-link">Classical Shor</a>
+        <a href="{{ url_for('quantum_page') }}" class="nav-link">Quantum Shor</a>
+        <a href="{{ url_for('history') }}" class="nav-link">History</a>
+        <a href="{{ url_for('help_page') }}" class="nav-link">Help</a>
+        <a href="{{ url_for('quantum_qa') }}" class="nav-link">Q&amp;A</a>
+        <button class="theme-toggle" type="button" onclick="toggleTheme()">
+            <span id="theme-icon">🌙</span>
+            <span id="theme-label">Dark</span>
+        </button>
+    </div>
+</nav>
+
+<div class="page">
+    <div class="hero">
+        <h2>Quantum Computing Q&amp;A</h2>
+        <p>Short answers to “why quantum?”, how it helps factoring, and what its future impact might be.</p>
+    </div>
+
+    <div class="qa-card">
+        <div class="qa-question">Q1. What is quantum computing in one sentence?</div>
+        <p class="qa-answer">
+            A quantum computer uses <strong>qubits</strong> that can exist in superpositions of 0 and 1,
+            allowing certain problems to be explored in parallel and solved with fewer steps than on a
+            classical computer.
+        </p>
+    </div>
+
+    <div class="qa-card">
+        <div class="qa-question">
+            Q2. Why is quantum computing relevant to cryptography?
+            <span class="pill">Shor’s Algorithm</span>
+        </div>
+        <p class="qa-answer">
+            Many widely used cryptosystems like RSA rely on the assumption that factoring a large number
+            <code>N = p · q</code> is hard for classical computers. Shor’s algorithm shows that an ideal
+            quantum computer could factor such numbers in exponentially faster time, breaking RSA-sized keys
+            that are considered secure today.
+        </p>
+    </div>
+
+    <div class="qa-card">
+        <div class="qa-question">Q3. Does this project run on a real quantum computer?</div>
+        <p class="qa-answer">
+            No. Our project uses <strong>Qiskit simulators</strong>, which run on classical hardware but
+            follow quantum mechanics mathematically. This lets us design and test quantum circuits, inspect
+            logs, and understand Shor’s algorithm behavior without needing access to an actual quantum device.
+        </p>
+    </div>
+
+    <div class="qa-card">
+        <div class="qa-question">Q4. What advantages does quantum computing have over classical computing?</div>
+        <p class="qa-answer">
+            Quantum computers are not “faster at everything”, but they can offer dramatic speedups for
+            specific tasks, such as:
+        </p>
+        <ul class="qa-answer">
+            <li>Factoring large integers and related number-theory problems (Shor’s algorithm).</li>
+            <li>Searching unsorted spaces more efficiently (Grover’s algorithm).</li>
+            <li>Simulating quantum systems in chemistry and materials science, which is very hard classically.</li>
+            <li>Certain optimization and linear algebra problems, which may benefit from quantum speedups.</li>
+        </ul>
+    </div>
+
+    <div class="qa-card">
+        <div class="qa-question">Q5. Are current quantum computers ready to break RSA today?</div>
+        <p class="qa-answer">
+            No. Today’s devices are called <strong>NISQ</strong> (Noisy Intermediate-Scale Quantum) machines:
+            they have relatively few qubits and high error rates. They are extremely useful for research and
+            proof-of-concept experiments, but they are far from the error-corrected, large-scale machines
+            required to break real-world cryptographic keys.
+        </p>
+    </div>
+
+    <div class="qa-card">
+        <div class="qa-question">Q6. So why study quantum algorithms like Shor’s now?</div>
+        <p class="qa-answer">
+            Even though large-scale quantum computers do not exist yet, the algorithms and threat models
+            already inform how we design <strong>post-quantum cryptography</strong> today. Understanding
+            Shor’s algorithm helps explain why new, quantum-safe cryptosystems are being standardized to
+            replace RSA and elliptic-curve schemes in the long term.
+        </p>
+    </div>
+
+    <div class="qa-card">
+        <div class="qa-question">Q7. How does this project connect to that future?</div>
+        <p class="qa-answer">
+            QuantumX ties everything together: the RSA module builds a small, educational keypair; the
+            classical and quantum Shor modules show two different approaches to factoring; and the history
+            view records the parameters used in multiple runs. Together, they demonstrate <em>why</em> factoring
+            matters, what Shor’s algorithm does, and why quantum computing is relevant to real cryptography.
+        </p>
+    </div>
+
+    <div class="back-row">
+        <a href="{{ url_for('home') }}" class="btn">⬅ Back to Dashboard</a>
+    </div>
+</div>
+
+<script>
+    function applyTheme(theme) {
+        const body = document.body;
+        const icon = document.getElementById('theme-icon');
+        const label = document.getElementById('theme-label');
+
+        if (theme === 'light') {
+            body.classList.remove('dark-mode');
+            body.classList.add('light-mode');
+            icon.textContent = '☀️';
+            label.textContent = 'Light';
+        } else {
+            body.classList.remove('light-mode');
+            body.classList.add('dark-mode');
+            icon.textContent = '🌙';
+            label.textContent = 'Dark';
+        }
+    }
+
+    function toggleTheme() {
+        const current = localStorage.getItem('theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+    }
+
+    (function initTheme() {
+        const saved = localStorage.getItem('theme') || 'dark';
+        applyTheme(saved);
+    })();
+</script>
+</body>
+</html>
