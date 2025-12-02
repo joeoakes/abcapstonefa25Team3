@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Help & Concepts — QuantumX Cryptosystem</title>
+<style>
+    :root {
+        --bg-main-dark: #020617;
+        --bg-main-light: #e5e7eb;
+        --card-dark: #020617;
+        --card-light: #ffffff;
+        --text-dark: #e5e7eb;
+        --text-light: #020617;
+        --muted-dark: #9ca3af;
+        --muted-light: #4b5563;
+    }
+
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark-mode {
+        background: var(--bg-main-dark);
+        color: var(--text-dark);
+    }
+
+    body.light-mode {
+        background: var(--bg-main-light);
+        color: var(--text-light);
+    }
+
+    nav {
+        background: #020617;
+        color: #e5e7eb;
+        padding: 14px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    body.light-mode nav {
+        background: #111827;
+    }
+
+    nav h1 {
+        margin: 0;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+    }
+
+    .nav-link {
+        color: #cbd5e1;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .nav-link:hover {
+        color: #ffffff;
+    }
+
+    .theme-toggle {
+        border: 1px solid #4b5563;
+        background: transparent;
+        color: #e5e7eb;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .page {
+        max-width: 1000px;
+        margin: 26px auto 40px;
+        padding: 0 18px 40px;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: fadeInUp 0.4s ease forwards;
+    }
+
+    .card {
+        background: var(--card-dark);
+        border-radius: 16px;
+        padding: 22px 24px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        border: 1px solid rgba(148,163,184,0.3);
+        margin-bottom: 18px;
+    }
+
+    body.light-mode .card {
+        background: var(--card-light);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    }
+
+    h2 {
+        margin-top: 0;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    h3 {
+        margin-bottom: 6px;
+        font-size: 18px;
+    }
+
+    p {
+        font-size: 14px;
+        color: var(--muted-dark);
+    }
+
+    body.light-mode p {
+        color: var(--muted-light);
+    }
+
+    ul {
+        padding-left: 20px;
+        margin-top: 4px;
+        margin-bottom: 10px;
+    }
+
+    li {
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    code {
+        background: #111827;
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+
+    body.light-mode code {
+        background: #e5e7eb;
+        color: #111827;
+    }
+
+    .pill {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        background: #0f172a;
+        color: #e5e7eb;
+        margin-left: 6px;
+    }
+
+    body.light-mode .pill {
+        background: #e5e7eb;
+        color: #111827;
+    }
+
+    .inline-heading {
+        font-weight: 600;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body class="dark-mode">
+
+<nav>
+    <h1> Help & Concepts</h1>
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}" class="nav-link">Dashboard</a>
+        <a href="{{ url_for('rsa_page') }}" class="nav-link">RSA</a>
+        <a href="{{ url_for('classical_page') }}" class="nav-link">Classical Shor</a>
+        <a href="{{ url_for('quantum_page') }}" class="nav-link">Quantum Shor</a>
+        <a href="{{ url_for('history') }}" class="nav-link">History</a>
+        <a href="{{ url_for('help_page') }}" class="nav-link">Help</a>
+        <a href="{{ url_for('quantum_qa') }}" class="nav-link">Q&amp;A</a>
+        <button class="theme-toggle" type="button" onclick="toggleTheme()">
+            <span id="theme-icon">🌙</span>
+            <span id="theme-label">Dark</span>
+        </button>
+    </div>
+</nav>
+
+<div class="page">
+
+    <div class="card">
+        <h2>Overview<span class="pill">What this project does</span></h2>
+        <p>
+            The QuantumX Cryptosystem is a teaching/demo application that connects
+            <span class="inline-heading">classical cryptography (RSA)</span> with
+            <span class="inline-heading">Shor’s algorithm</span>, which is a quantum algorithm for factoring numbers.
+            The GUI is organized into separate modules:
+        </p>
+        <ul>
+            <li><strong>RSA module:</strong> Generates RSA keypairs and stores the modulus <code>N</code>.</li>
+            <li><strong>Classical Shor module:</strong> Runs a classical simulation of Shor’s algorithm.</li>
+            <li><strong>Quantum Shor module:</strong> Uses a Qiskit-based implementation to factor <code>N</code>.</li>
+            <li><strong>History module:</strong> Shows a parsed table of previous Shor runs from <code>shor_database.txt</code>.</li>
+        </ul>
+        <p>
+            The goal is to show how a number that is “hard” for RSA (factoring the modulus <code>N = p · q</code>)
+            becomes tractable for a quantum algorithm, and how the system could be extended with error-correction ideas.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>RSA Module </h2>
+
+        <h3>What is RSA, in simple terms?</h3>
+        <p>
+            RSA is a public-key cryptosystem based on the difficulty of factoring a large integer
+            <code>N = p · q</code>, where <code>p</code> and <code>q</code> are prime numbers.
+            The security assumption (in real systems) is that, given only <code>N</code>, it is
+            computationally hard to recover <code>p</code> and <code>q</code>.
+        </p>
+        <ul>
+            <li><span class="inline-heading">Public key:</span> <code>(e, N)</code> – used to encrypt or verify.</li>
+            <li><span class="inline-heading">Private key:</span> <code>(d, N)</code> – used to decrypt or sign.</li>
+            <li><span class="inline-heading">Hard problem:</span> factoring <code>N</code> into its prime factors.</li>
+        </ul>
+
+        <h3>What the RSA page does in this GUI</h3>
+        <p>
+            The RSA page lets you choose a <span class="inline-heading">prime range</span> and then generates
+            a small demo keypair using primes randomly selected from that interval. This is intentionally
+            insecure (tiny primes) but perfect for showing how RSA and Shor’s algorithm connect.
+        </p>
+        <ul>
+            <li>You enter:
+                <ul>
+                    <li><span class="inline-heading">Min Prime (p):</span> lower bound for possible primes.</li>
+                    <li><span class="inline-heading">Max Prime (q):</span> upper bound for possible primes.</li>
+                </ul>
+            </li>
+            <li>When you click <strong>Generate RSA Keys</strong>:
+                <ul>
+                    <li>The backend picks two <em>distinct</em> primes <code>p</code> and <code>q</code> in that range
+                        (using the same primality test as <code>RSAKeyGen.py</code>).</li>
+                    <li>It computes <code>n = p · q</code> and <code>φ(n) = (p − 1)(q − 1)</code>.</li>
+                    <li>It chooses a public exponent <code>e</code> that is coprime with <code>φ(n)</code>.</li>
+                    <li>It computes the private exponent <code>d</code> as the modular inverse of <code>e</code> mod <code>φ(n)</code>.</li>
+                    <li>It saves:
+                        <ul>
+                            <li><code>public_key.txt</code> → <code>(e, n)</code></li>
+                            <li><code>private_key.txt</code> → <code>(d, n)</code></li>
+                        </ul>
+                    </li>
+                    <li>It also stores <code>n</code> in a shared variable <code>last_rsa_n</code>, which the
+                        Quantum Shor page can reuse.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>Input constraints & error messages</h3>
+        <ul>
+            <li>If <code>max</code> ≤ <code>min</code> or <code>min &lt; 2</code>, the GUI shows an error message instead of generating keys.</li>
+            <li>If there are fewer than two primes in the given range, you’ll see an error like
+                “Not enough primes found in range [...]”.</li>
+            <li>This keeps the demo stable while still letting you experiment with different sizes of <code>n</code>.</li>
+        </ul>
+    </div>
+
+
+    <div class="card">
+        <h2>Classical Shor Module </h2>
+
+        <h3>What is Shor’s algorithm?</h3>
+        <p>
+            Shor’s algorithm is a quantum algorithm that can factor integers in
+            <span class="inline-heading">polynomial time</span>. It does this by reducing factoring to a
+            <span class="inline-heading">period-finding problem</span>:
+        </p>
+        <ul>
+            <li>Pick a random integer <code>a</code> that is coprime to <code>N</code>.</li>
+            <li>Consider the function <code>f(x) = a^x mod N</code>.</li>
+            <li>Find the <span class="inline-heading">period</span> <code>r</code> such that <code>a^r ≡ 1 (mod N)</code>.</li>
+            <li>If <code>r</code> is even and some additional conditions hold, you can recover factors of <code>N</code> from <code>gcd(a^{r/2} ± 1, N)</code>.</li>
+        </ul>
+        <p>
+            The “quantum magic” is used to find the period <code>r</code> quickly. The rest of the steps
+            (like computing the GCDs) are classical.
+        </p>
+
+        <h3>What the Classical Shor page does</h3>
+        <p>
+            The Classical Shor module calls <code>run_multiple()</code> from <code>ClassicalShors.py</code>.
+            This is a <em>classical</em> simulation that mimics the structure of Shor’s algorithm without an actual quantum circuit.
+        </p>
+        <ul>
+            <li>When you click <strong>Run Classical Shor</strong>:
+                <ul>
+                    <li>The backend redirects <code>stdout</code> into a buffer.</li>
+                    <li><code>run_multiple()</code> tries factoring a set of demo values.</li>
+                    <li>The detailed text trace (values of <code>N</code>, <code>a</code>, <code>r</code>, intermediate GCDs) is captured and shown in the output box.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Quantum Shor Module </h2>
+
+        <h3>What is a qubit and why do we care?</h3>
+        <p>
+            A <span class="inline-heading">qubit</span> is the quantum version of a bit. A classical bit is either
+            <code>0</code> or <code>1</code>, but a qubit can be in a <span class="inline-heading">superposition</span>
+            of both at once:
+        </p>
+        <p style="margin-left: 12px;">
+            <code>|ψ⟩ = α |0⟩ + β |1⟩</code> with <code>|α|² + |β|² = 1</code>.
+        </p>
+        <ul>
+            <li><span class="inline-heading">Superposition</span> lets the algorithm explore many possibilities in parallel.</li>
+            <li><span class="inline-heading">Interference</span> lets “good” answers be amplified and “bad” ones cancelled out.</li>
+            <li><span class="inline-heading">Measurement</span> collapses the state to a definite 0/1 outcome with certain probabilities.</li>
+        </ul>
+
+        <h3>How Shor’s algorithm uses qubits (conceptually)</h3>
+        <p>
+            Shor’s algorithm factors <code>N</code> by reducing factoring to a
+            <span class="inline-heading">period-finding</span> problem:
+        </p>
+        <ul>
+            <li>Choose an integer <code>a</code> that is coprime with <code>N</code>.</li>
+            <li>Consider the function <code>f(x) = a^x mod N</code>.</li>
+            <li>On a quantum computer, prepare a superposition over many <code>x</code> values and compute <code>f(x)</code> in parallel.</li>
+            <li>Apply the Quantum Fourier Transform (QFT) to extract information about the period <code>r</code> of <code>f</code>.</li>
+            <li>Use the measured phase to recover <code>r</code>, then compute factors of <code>N</code> from <code>gcd(a^{r/2} ± 1, N)</code>.</li>
+        </ul>
+        <p>
+            In this project, that logic is implemented in Qiskit (see <code>QiskitShorsMain.py</code> and the
+            function <code>factor_N()</code>) and run on a simulator, not a physical quantum chip.
+        </p>
+
+        <h3>What the Quantum Shor page does</h3>
+        <p>
+            The Quantum Shor page provides a simple form to choose which <code>N</code> to factor and then calls
+            <code>factor_N(N=...)</code>. All of the detailed logs from the Qiskit simulation are captured and
+            shown in the output box.
+        </p>
+        <ul>
+            <li>You can:
+                <ul>
+                    <li>Type an <code>N</code> manually in the input field, or</li>
+                    <li>Check <strong>Use most recent RSA N</strong> to reuse the modulus generated on the RSA page.</li>
+                </ul>
+            </li>
+            <li>When you click <strong>Run Quantum Shor</strong>:
+                <ul>
+                    <li>The backend redirects <code>stdout</code> so all <code>Log(...)</code> messages from
+                        <code>QiskitShorsMain.py</code> are captured.</li>
+                    <li>It chooses <code>N</code> according to the form:
+                        <ul>
+                            <li>If “Use most recent RSA N” is checked and <code>last_rsa_n</code> exists → factor that value.</li>
+                            <li>Else, if a manual <code>N</code> is given → factor that integer.</li>
+                            <li>Else → use a default small demo value (like <code>N = 15</code>).</li>
+                        </ul>
+                    </li>
+                    <li>It runs <code>factor_N(N=...)</code>, which:
+                        <ul>
+                            <li>Validates <code>N</code> (must be an integer, composite &gt; 3, not too large).</li>
+                            <li>Builds the Shor/QPE circuit in Qiskit.</li>
+                            <li>Executes the circuit on a simulator (GPU if available, otherwise CPU).</li>
+                            <li>Analyzes the measurement outcomes to recover the period <code>r</code>.</li>
+                            <li>Attempts to compute non-trivial factors of <code>N</code> from <code>r</code>.</li>
+                        </ul>
+                    </li>
+                    <li>The textual log (backend setup, CUDA checks, trials, phases, candidate <code>r</code> values, and final factors)
+                        is then printed into the GUI output box.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+
+    <div class="card">
+        <h2>History Module </h2>
+
+        <h3>What the History page shows</h3>
+        <p>
+            The History module parses <code>shor_database.txt</code> and displays up to the first 200 entries
+            in a filterable table. Each row corresponds to a recorded run of the Shor algorithm.
+        </p>
+        <ul>
+            <li><span class="inline-heading">Columns:</span>
+                <ul>
+                    <li><code>N</code> → the number being factored.</li>
+                    <li><code>p</code>, <code>q</code> → the prime factors found.</li>
+                    <li><code>a</code> → the base used in the run.</li>
+                    <li><code>r</code> → the period in <code>a^x mod N</code> (may be <code>None</code> if not found).</li>
+                </ul>
+            </li>
+            <li>You can type into the search box to filter by any column (e.g., a specific <code>N</code> or period <code>r</code>).</li>
+        </ul>
+    </div>
+
+</div>
+
+<script>
+    function applyTheme(theme) {
+        const body = document.body;
+        const icon = document.getElementById('theme-icon');
+        const label = document.getElementById('theme-label');
+
+        if (theme === 'light') {
+            body.classList.remove('dark-mode');
+            body.classList.add('light-mode');
+            icon.textContent = '☀️';
+            label.textContent = 'Light';
+        } else {
+            body.classList.remove('light-mode');
+            body.classList.add('dark-mode');
+            icon.textContent = '🌙';
+            label.textContent = 'Dark';
+        }
+    }
+
+    function toggleTheme() {
+        const current = localStorage.getItem('theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+    }
+
+    (function initTheme() {
+        const saved = localStorage.getItem('theme') || 'dark';
+        applyTheme(saved);
+    })();
+</script>
+
+</body>
+</html>
