@@ -1,231 +1,334 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Team 3 Capstone — QuantumX Cryptosystem</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #e3f2fd, #e8f5e9);
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuantumX Dashboard</title>
 
-        nav {
-            background: #2c3e50;
-            padding: 15px;
-            color: white;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
+<style>
+    :root {
+        --bg-main-dark: linear-gradient(120deg, #0f172a, #1e293b);
+        --bg-main-light: #e5e7eb;
+        --card-dark: #020617;
+        --card-light: #ffffff;
+        --text-dark: #e5e7eb;
+        --text-light: #020617;
+        --muted-dark: #9ca3af;
+        --muted-light: #4b5563;
+    }
 
-        h1 {
-            margin: 0;
-            font-size: 24px;
-        }
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        transition: background 0.3s ease, color 0.3s ease;
+    }
 
-        h3 {
-            color: #555;
-            margin-top: 10px;
-        }
+    body.dark-mode {
+        background: var(--bg-main-dark);
+        color: var(--text-dark);
+    }
 
-        .container {
-            display: inline-block;
-            background: white;
-            padding: 40px;
-            margin-top: 50px;
-            border-radius: 20px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s ease-in-out;
-            width: 500px;
-        }
+    body.light-mode {
+        background: var(--bg-main-light);
+        color: var(--text-light);
+    }
 
-        .container:hover {
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
+    nav {
+        background: #020617;
+        color: #e5e7eb;
+        padding: 14px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
+    body.light-mode nav {
+        background: #111827;
+        color: #e5e7eb;
+    }
 
-        .settings-section {
-            background: #f5f5f5;
-            border-radius: 10px;
-            padding: 15px;
-            width: 90%;
-            text-align: left;
-        }
+    nav h1 {
+        margin: 0;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 
-        .settings-section h3 {
-            margin: 0 0 10px;
-            color: #333;
-            font-size: 18px;
-        }
+    .nav-links {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+    }
 
-        .settings-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
+    .nav-link {
+        color: #cbd5e1;
+        text-decoration: none;
+        font-size: 14px;
+    }
 
-        label {
-            font-weight: 500;
-            color: #444;
-        }
+    .nav-link:hover {
+        color: #ffffff;
+    }
 
-        input[type="number"], input[type="text"] {
-            width: 45%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-        }
+    .theme-toggle {
+        border: 1px solid #4b5563;
+        background: transparent;
+        color: #e5e7eb;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
 
-        input[type="checkbox"] {
-            transform: scale(1.2);
-            margin-right: 6px;
-        }
+    body.light-mode .theme-toggle {
+        color: #e5e7eb;
+        border-color: #6b7280;
+    }
 
-        button {
-            padding: 15px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            color: white;
-            transition: 0.3s ease-in-out;
-            width: 220px;
-        }
+    /* HERO LOGO */
+    .hero-logo {
+        text-align: center;
+        margin-top: 18px;      /* was 26px */
+        margin-bottom: 8px;    /* was 22px */
+        opacity: 0;
+        transform: translateY(-8px);
+        animation: logoFade 0.6s ease forwards;
+    }
 
-        .rsa { background-color: #4CAF50; }
-        .classical { background-color: #2196F3; }
-        .quantum { background-color: #9C27B0; }
-        .quantum_hamming { background-color: #FF5722; }
+    .brand-title {
+        font-size: 64px;
+        letter-spacing: 4px;
+        font-weight: 800;
+        margin: 0;
+        background: linear-gradient(90deg, #22c55e, #38bdf8, #6366f1, #a78bfa);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
 
-        button:hover {
-            transform: scale(1.05);
-            opacity: 0.9;
-        }
+    .brand-tagline {
+        margin-top: 8px;
+        font-size: 15px;
+        letter-spacing: 1.5px;
+        color: #9ca3af;
+    }
 
-        #loading {
-            display: none;
-            margin-top: 20px;
-            font-weight: bold;
-            color: #2c3e50;
-            animation: pulse 1s infinite;
-        }
+    body.light-mode .brand-tagline {
+        color: #334155;
+    }
 
-        @keyframes pulse {
-            0% { opacity: 0.4; }
-            50% { opacity: 1; }
-            100% { opacity: 0.4; }
-        }
+    @keyframes logoFade {
+        from { opacity: 0; transform: translateY(-12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-        pre {
-            text-align: left;
-            background: #1e1e1e;
-            color: #00ff99;
-            padding: 15px;
-            border-radius: 10px;
-            width: 80%;
-            margin: 30px auto;
-            overflow-x: auto;
-            max-height: 400px;
-        }
+    /* DASHBOARD / CARDS */
+    .dashboard {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;                /* no vertical centering */
+        gap: 32px;
+        padding: 16px 30px 40px;                /* smaller top padding */
+        flex-wrap: wrap;
+        max-width: 1100px;
+        margin: 0 auto 40px;                    /* center and add small bottom margin */
+        opacity: 0;
+        transform: translateY(8px);
+        animation: fadeInUp 0.4s ease forwards;
+        animation-delay: 0.05s;
+        /* removed min-height: calc(100vh - 64px); */
+    }
 
-        footer {
-            margin-top: 50px;
-            color: #888;
-            font-size: 14px;
-            padding-bottom: 30px;
-        }
+    .card {
+        background: var(--card-dark);
+        width: 300px;
+        height: 220px;
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid rgba(148,163,184,0.3);
+    }
 
-        a.download-link {
-            color: #1565C0;
-            display: inline-block;
-            margin-top: 10px;
-            text-decoration: none;
-        }
+    body.light-mode .card {
+        background: var(--card-light);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    }
 
-        a.download-link:hover {
-            text-decoration: underline;
-        }
+    .card:hover {
+        transform: translateY(-6px) scale(1.03);
+        box-shadow: 0 16px 35px rgba(0,0,0,0.6);
+    }
 
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-    </style>
+    body.light-mode .card:hover {
+        box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        background: radial-gradient(circle at 30% 0, #22d3ee, #1d4ed8);
+    }
+
+    .card h2 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .card p {
+        font-size: 14px;
+        line-height: 1.4;
+        color: var(--muted-dark);
+    }
+
+    body.light-mode .card p {
+        color: var(--muted-light);
+    }
+
+    .btn {
+        background: #4f46e5;
+        color: white;
+        padding: 9px;
+        border-radius: 8px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 14px;
+        transition: background 0.2s ease;
+    }
+
+    .btn:hover {
+        background: #6366f1;
+    }
+
+    footer {
+        position: fixed;
+        bottom: 8px;
+        right: 14px;
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 </head>
-<body>
-    <nav>
-        <h1>Team 3 Capstone: QuantumX Cryptosystem</h1>
-    </nav>
 
-    <h3>Penn State Abington — Fall 2025</h3>
+<body class="dark-mode">
+<nav>
+    <h1>QuantumX</h1>
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}" class="nav-link">Dashboard</a>
+        <a href="{{ url_for('rsa_page') }}" class="nav-link">RSA</a>
+        <a href="{{ url_for('classical_page') }}" class="nav-link">Classical Shor</a>
+        <a href="{{ url_for('quantum_page') }}" class="nav-link">Quantum Shor</a>
+        <a href="{{ url_for('history') }}" class="nav-link">History</a>
+        <a href="{{ url_for('help_page') }}" class="nav-link">Help</a>
+        <a href="{{ url_for('quantum_qa') }}" class="nav-link">Q&amp;A</a>
+        <button class="theme-toggle" type="button" onclick="toggleTheme()">
+            <span id="theme-icon">🌙</span>
+            <span id="theme-label">Dark</span>
+        </button>
+    </div>
+</nav>
 
-    <div class="container">
-        <h2>Choose an Algorithm</h2>
-        <form method="POST">
-            
-            <!-- RSA SETTINGS -->
-            <div class="settings-section">
-                <h3>RSA Settings</h3>
-                <div class="settings-row">
-                    <label>Min Prime (p):</label>
-                    <input type="number" name="min_p" value="5">
-                    <label>Max Prime (q):</label>
-                    <input type="number" name="max_p" value="50">
-                </div>
+<div class="hero-logo">
+    <h1 class="brand-title">QuantumX</h1>
+    <p class="brand-tagline">
+        RSA Cryptography &amp; Quantum Shor Demonstration
+    </p>
+</div>
+
+<div class="dashboard">
+
+    <div class="card">
+        <div>
+            <div class="card-header">
+                <div class="card-icon"></div>
+                <h2>RSA Cryptography</h2>
             </div>
-
-            <!-- QUANTUM SHOR SETTINGS -->
-            <div class="settings-section">
-                <h3>Quantum Shor Settings</h3>
-                <div class="settings-row">
-                    <label>N value:</label>
-                    <input type="number" name="N_value" placeholder="Enter N (e.g., 143)">
-                </div>
-                <label><input type="checkbox" name="use_rsa_n" value="true"> Use RSA N value</label>
-            </div>
-
-            <!-- BUTTON GRID -->
-            <div class="button-grid">
-                <button name="action" value="generate_rsa" class="rsa">Generate RSA Keys</button>
-                <button name="action" value="run_classical" class="classical">Run Classical Shor</button>
-                <button name="action" value="run_quantum" class="quantum">Run Quantum Shor</button>
-                <button name="action" value="run_quantum_hamming" class="quantum_hamming">Quantum + Hamming</button>
-            </div>
-        </form>
-
-        <div id="loading">Running algorithm...</div>
+            <p>Generate and inspect RSA keypairs. Produces public/private keys and stores them locally, including the modulus N.</p>
+        </div>
+        <a href="{{ url_for('rsa_page') }}" class="btn">Open RSA Module</a>
     </div>
 
-    {% if action %}
-        <h2>Output: {{ action.replace('_', ' ').title() }}</h2>
-        <pre>{{ output }}</pre>
-        <a href="#" download="results.txt" class="download-link">⬇ Download Output</a>
-    {% endif %}
+    <div class="card">
+        <div>
+            <div class="card-header">
+                <div class="card-icon"></div>
+                <h2>Classical Shor</h2>
+            </div>
+            <p>Run a classical simulation of Shor’s algorithm to see factoring behavior without a quantum computer.</p>
+        </div>
+        <a href="{{ url_for('classical_page') }}" class="btn">Run Classical Shor</a>
+    </div>
 
-    <footer>
-        <p>Developed by Team Xtreme — Sam Axler, Matthew Danese, Chris Joo, John Teetz, William Lawther, Rahul Reji, Martin Shestani</p>
-    </footer>
+    <div class="card">
+        <div>
+            <div class="card-header">
+                <div class="card-icon"></div>
+                <h2>Quantum Shor</h2>
+            </div>
+            <p>Use a Qiskit-based quantum implementation of Shor’s algorithm to factor the same N used in the RSA module.</p>
+        </div>
+        <a href="{{ url_for('quantum_page') }}" class="btn">Launch Quantum Shor</a>
+    </div>
 
-    <script>
-        const buttons = document.querySelectorAll("button");
-        const loading = document.getElementById("loading");
+</div>
 
-        buttons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                loading.style.display = "block";
-            });
-        });
-    </script>
+<footer>
+    <p>Developed by Team Xtreme - Sam Axler, Matthew Danese, Chris Joo, John Teetz, William Lawther, Rahul Reji, Martin Shestani</p>
+</footer>
+
+<script>
+    function applyTheme(theme) {
+        const body = document.body;
+        const icon = document.getElementById('theme-icon');
+        const label = document.getElementById('theme-label');
+
+        if (theme === 'light') {
+            body.classList.remove('dark-mode');
+            body.classList.add('light-mode');
+            icon.textContent = '☀️';
+            label.textContent = 'Light';
+        } else {
+            body.classList.remove('light-mode');
+            body.classList.add('dark-mode');
+            icon.textContent = '🌙';
+            label.textContent = 'Dark';
+        }
+    }
+
+    function toggleTheme() {
+        const current = localStorage.getItem('theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+    }
+
+    (function initTheme() {
+        const saved = localStorage.getItem('theme') || 'dark';
+        applyTheme(saved);
+    })();
+</script>
 </body>
 </html>
