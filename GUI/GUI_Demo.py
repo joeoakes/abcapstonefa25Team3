@@ -13,6 +13,20 @@ app = Flask(__name__)
 
 # Store the latest RSA modulus N so it can be reused in Quantum Shor
 last_rsa_n = None
+last_rsa_e = None
+last_rsa_d = None
+
+def encrypt_message(message: str, public_key: tuple[int, int]) -> list[int]:
+    """Encrypt a message (string) into a list of integers using (e, n)."""
+    e, n = public_key
+    return [pow(ord(ch), e, n) for ch in message]
+
+
+def decrypt_message(ciphertext: list[int], private_key: tuple[int, int]) -> str:
+    """Decrypt a list of integers back into a string using (d, n)."""
+    d, n = private_key
+    return ''.join(chr(pow(c, d, n)) for c in ciphertext)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -97,36 +111,76 @@ def home():
 
     return render_template("index.html", output=output, action=action)
 
+
 @app.route("/rsa", methods=["GET", "POST"])
 def rsa_page():
-    global last_rsa_n
-    output = ""
+    global last_rsa_n, last_rsa_e, last_rsa_d
+    output = ""          # for key generation messages
+    crypto_output = ""   # for encrypt/decrypt demo
 
     if request.method == "POST":
+        action = request.form.get("action")
+
         try:
-            # Read user inputs from the form
-            min_p = int(request.form.get("min_p", "5"))
-            max_p = int(request.form.get("max_p", "50"))
+            if action == "generate":
+                # key generation branch 
+                min_p = int(request.form.get("min_p", "5"))
+                max_p = int(request.form.get("max_p", "50"))
 
-            # Generate RSA keys in that range (using our helper)
-            e, d, n = generate_rsa_in_range(min_p, max_p)
-            last_rsa_n = n
+                if min_p < 2 or max_p <= min_p:
+                    output = "Error: max must be greater than min and min must be ≥ 2."
+                else:
+                    e, d, n = generate_rsa_in_range(min_p, max_p)
 
-            output = (
-                "RSA Keys Generated Successfully!\n\n"
-                f"Prime range: {min_p} to {max_p}\n"
-                f"Public Key (e, n): {(e, n)}\n"
-                f"Private Key (d, n): {(d, n)}\n\n"
-                "Keys saved as public_key.txt and private_key.txt\n"
-                f"Stored N value: {last_rsa_n}"
-            )
+                    last_rsa_e = e
+                    last_rsa_d = d
+                    last_rsa_n = n
 
-        except ValueError as ve:
-            output = f"Error: {str(ve)}"
+                    output = (
+                        "RSA Keys Generated Successfully!\n\n"
+                        f"Prime range: {min_p} to {max_p}\n"
+                        f"Public Key (e, n): {(e, n)}\n"
+                        f"Private Key (d, n): {(d, n)}\n\n"
+                        "Keys saved as public_key.txt and private_key.txt\n"
+                        f"Stored N value: {last_rsa_n}"
+                    )
+
+            elif action == "encrypt_decrypt":
+                # encrypt/decrypt branch
+                if not (last_rsa_e and last_rsa_d and last_rsa_n):
+                    crypto_output = "Error: Please generate RSA keys first."
+                else:
+                    message = request.form.get("message", "")
+
+                    if not message:
+                        crypto_output = "Please enter a message to encrypt."
+                    else:
+                        public_key = (last_rsa_e, last_rsa_n)
+                        private_key = (last_rsa_d, last_rsa_n)
+
+                        ciphertext = encrypt_message(message, public_key)
+                        decrypted = decrypt_message(ciphertext, private_key)
+
+                        crypto_output = (
+                            "Encryption / Decryption demo using current RSA keys\n\n"
+                            f"Original message:\n{message}\n\n"
+                            f"Ciphertext (integer list):\n{ciphertext}\n\n"
+                            f"Decrypted message:\n{decrypted}"
+                        )
+
+        except ValueError:
+            if action == "generate":
+                output = "Error: Please enter valid integers for min and max."
+            else:
+                crypto_output = "Error: Invalid input."
         except Exception as e:
-            output = f"Error generating RSA keys: {str(e)}"
+            if action == "generate":
+                output = f"Error generating RSA keys: {str(e)}"
+            else:
+                crypto_output = f"Error during encryption/decryption: {str(e)}"
 
-    return render_template("rsa.html", output=output)
+    return render_template("rsa.html", output=output, crypto_output=crypto_output)
+
 
 @app.route("/classical", methods=["GET", "POST"])
 def classical_page():
@@ -148,6 +202,7 @@ def classical_page():
             output = f"Error running classical Shor: {str(e)}"
 
     return render_template("classical.html", output=output)
+
 
 @app.route("/quantum", methods=["GET", "POST"])
 def quantum_page():
@@ -193,6 +248,11 @@ def _find_shor_log():
     return None
 
 def generate_rsa_in_range(min_p: int, max_p: int):
+    """
+    Generate RSA keys using primes in [min_p, max_p], without modifying RSAKeyGen.py.
+    Uses is_prime and mod_inverse imported from RSAKeyGen.
+    """
+
     if min_p < 2 or max_p <= min_p:
         raise ValueError("Invalid range: max must be > min and min must be ≥ 2.")
 
@@ -218,7 +278,7 @@ def generate_rsa_in_range(min_p: int, max_p: int):
     # compute d using RSAKeyGen's mod_inverse
     d = mod_inverse(e, phi)
 
-    # save keys 
+    # save keys exactly like RSAKeyGen does
     public_key = (e, n)
     private_key = (d, n)
 
@@ -246,7 +306,6 @@ def _parse_shor_log(p: Path):
             "r": (None if r == "None" else int(r))
         })
     return rows
-
 
 @app.route("/history")
 def history():
