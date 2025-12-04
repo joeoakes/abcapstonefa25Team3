@@ -42,13 +42,16 @@ RESET = "\033[0m"
 USE_FLATTEN = False
 
 def Log(message):
-    # Works in both terminals and Colab.
+    # Works in both terminals, Flask, and Colab.
     timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
     msg_str = str(message)
     formatted = f"{timestamp} {msg_str}{RESET}"
 
+    # Always write to stdout so Flask's StringIO capture sees it
+    print(formatted)
+
     if "google.colab" in sys.modules:
-        # Convert ANSI codes to <span> tags for color display
+        # Convert ANSI codes to <span> tags for color display in the notebook
         html = re.sub(r"\033\[91m", "<span style='color:#ff5555'>", formatted)
         html = re.sub(r"\033\[92m", "<span style='color:#22cc22'>", html)
         html = re.sub(r"\033\[93m", "<span style='color:#ffcc00'>", html)
@@ -56,13 +59,12 @@ def Log(message):
         html = re.sub(r"\033\[96m", "<span style='color:#00ffff'>", html)
         html = re.sub(r"\033\[0m", "</span>", html)
         display(HTML(f"<pre style='font-family:monospace'>{html}</pre>"))
-    else:
-        print(formatted)
 
     # Write clean text to file
     no_ansi = re.sub(r"\033\[[0-9;]*m", "", formatted)
     with open("log.txt", "a", encoding="utf-8") as log:
         log.write(no_ansi + "\n")
+
 
 def pick_diverse_a_values(N, a_trials=6, seed=None):
     #Choose diverse, coprime 'a' values for Shor's algorithm runs.
