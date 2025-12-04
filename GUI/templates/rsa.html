@@ -200,6 +200,8 @@ body.light-mode pre {
     background: #111827;
 }
 
+/* ---------- Anim ---------- */
+
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
@@ -237,6 +239,8 @@ body.light-mode pre {
         </p>
 
         <form method="POST">
+            <input type="hidden" name="action" value="generate">
+
             <div class="settings-section">
                 <h3>Prime Selection</h3>
 
@@ -252,6 +256,7 @@ body.light-mode pre {
             <button type="submit">Generate RSA Keys</button>
         </form>
 
+
         {% if output %}
             <div class="output-controls">
                 <button type="button" onclick="toggleOutput()">Show / Hide Output</button>
@@ -259,6 +264,31 @@ body.light-mode pre {
             </div>
             <pre id="output-box">{{ output }}</pre>
         {% endif %}
+
+        <hr style="margin: 24px 0; border-color: rgba(148,163,184,0.4);">
+
+        <h3>Encrypt / Decrypt Message Demo</h3>
+        <p>
+            This section uses the <strong>most recently generated RSA keys</strong>.
+            First generate keys above, then enter a message to see it encrypted with the public key
+            and decrypted with the private key.
+        </p>
+
+        <form method="POST" style="margin-top: 10px;">
+            <input type="hidden" name="action" value="encrypt_decrypt">
+
+            <label for="message" style="font-size: 14px;">Message to encrypt:</label><br>
+            <textarea id="message" name="message" rows="3" style="width: 100%; margin-top: 4px; padding: 8px; border-radius: 8px; border: 1px solid #4b5563;"></textarea>
+
+            <div style="margin-top: 10px;">
+                <button type="submit">Encrypt &amp; Decrypt with Current RSA Keys</button>
+            </div>
+        </form>
+
+        {% if crypto_output %}
+            <pre style="margin-top: 10px;">{{ crypto_output }}</pre>
+        {% endif %}
+
 
     </div>
 </div>
